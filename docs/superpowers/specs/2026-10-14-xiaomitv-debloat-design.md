@@ -36,10 +36,11 @@ Layers under `xiaomitv/`, each with one job:
    state of every package, device info and free RAM. `restore` re-enables exactly what the
    snapshot says.
 5. **actions** — `disable` / `enable`, one package at a time, logging each result before the next.
+   **tweaks** — registry of optional system settings (read / apply / revert commands).
 6. **server** — Flask app on `127.0.0.1:8080` exposing `/connect`, `/scan`, `/apply`,
-   `/backups`, `/restore`. A `--lan` flag (off by default, prints a warning) allows phone access.
+   `/backups`, `/restore`, `/tweaks`. A `--lan` flag (off by default, prints a warning) allows phone access.
 7. **page** — single static page: connection bar, RAM/storage summary + Scan button, app table
-   (name, RAM, rating, reason, checkbox), Apply bar, Backups list with Restore.
+   (name, RAM, rating, reason, checkbox), Apply bar, Tweaks section, Backups list with Restore.
 
 ## Ratings
 Three levels, seeded from the 4pda MI TV A2 thread (shtopor-89 and meth_lab lists) and the
@@ -63,6 +64,19 @@ Habr Mi TV write-up, then checked against the real scan:
   `com.xiaomi.android.tvsetup.partnercustomizer`, `com.xm.webcontent`, `com.mitv.overseaservice`,
   Mi video/music/gallery, `milegal`, `gms`, `webview`, input method, settings, system UI.
 Matching uses package names from the scan, since they differ between firmware builds.
+
+## Optional tweaks (v1)
+A separate "Tweaks" section in the page, off by default, never applied by the app table's Apply.
+- **Cached-app freezer** (source: 4pda TCL thread, same stock Android 11 feature). Shows current
+  state, read via `settings get global cached_apps_freezer` and
+  `device_config get activity_manager_native_boot use_freezer`. Enable sets
+  `cached_apps_freezer enabled`, `use_freezer true` and `freeze_debounce_timeout 1000`, then
+  prompts for a TV reboot. Disable sets `use_freezer false` and `cached_apps_freezer default`.
+- On the target TV all three values are unset (freezer off). Kernel support could not be verified
+  (`/proc/cgroups` is not readable over ADB), so the page says it may have no effect.
+- The tweak's previous values are stored in the same backup snapshot, so Restore reverts it.
+- Each tweak is a small entry (name, read command, apply commands, revert commands, warning), so
+  more can be added later without changing the architecture.
 
 ## Data flow
 Connect → scan (collector → analyzer) → table → user ticks apps → confirm → backup snapshot →
@@ -88,3 +102,5 @@ flags any app that has re-enabled itself and offers a one-click re-disable.
 ## Open items
 - `apps.yaml` is not written yet. Each entry marked safe needs a sanity check on this TV.
 - Optional later: `pm compile -m everything` (storage check required), per-app RAM trend.
+- Tweaks need a way to tell whether the freezer actually took effect; the forum only suggests
+  grepping logcat. To be worked out during implementation.
