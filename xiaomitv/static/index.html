@@ -28,6 +28,20 @@
     </div>
   </section>
 
+  <section class="card" id="recipes-section" aria-label="Recipes">
+    <div class="row between">
+      <h2>Recipes</h2>
+      <div class="row">
+        <label for="recipe-model" class="inline">Model</label>
+        <select id="recipe-model"></select>
+        <label for="recipe-android" class="inline">Android</label>
+        <select id="recipe-android"></select>
+      </div>
+    </div>
+    <p id="recipe-note" class="note">Scan your TV, then click a recipe to tick every app from it that the TV has.</p>
+    <div id="recipes-list"></div>
+  </section>
+
   <section class="card" aria-label="Apps">
     <div class="row between">
       <h2>Apps</h2>
@@ -60,6 +74,7 @@
     <ul id="backups-list"><li class="note">None yet.</li></ul>
   </section>
 </main>
+<script src="/static/recipe_plan.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

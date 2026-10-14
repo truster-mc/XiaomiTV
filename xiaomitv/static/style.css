@@ -55,4 +55,17 @@ tr.off { opacity: .55; }
 .ok { color: var(--safe); } .fail { color: var(--err); }
 .tweak { padding: 8px 0; border-bottom: 1px solid var(--line); }
 .tweak .warn { color: var(--trade); font-size: .9rem; }
+.recipe { border: 1px solid var(--line); border-radius: 8px; margin-top: 10px; }
+.recipe-main { display: block; width: 100%; text-align: left; border: 0; border-radius: 8px 8px 0 0;
+  background: transparent; padding: 10px 12px; }
+.recipe-main:hover { background: var(--bg); }
+.recipe-main strong { display: block; }
+.recipe-meta { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+.recipe details { padding: 4px 12px 10px; border-top: 1px solid var(--line); }
+.recipe summary { cursor: pointer; color: var(--muted); padding: 6px 0; }
+.recipe .step { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.recipe .step .row { justify-content: space-between; }
+.tag.manual { color: var(--keep); }
+select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--text); font: inherit; }
 @media (max-width: 480px) { main { padding: 12px; } .row { gap: 8px; } }

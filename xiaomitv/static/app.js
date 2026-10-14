@@ -2,6 +2,8 @@
 const $ = (id) => document.getElementById(id);
 let rows = [];
 let cameBack = new Set();
+let device = null;
+const recipeCache = {};
 
 function banner(message, hint, info) {
   const el = $("status-banner");
@@ -196,7 +198,10 @@ async function scan() {
       `Storage: ${gb(d.storage.free_kb)} free of ${gb(d.storage.total_kb)}`;
     renderRows();
     renderTweaks(d.tweaks);
+    device = d.device;
+    await loadRecipes(true);
     await loadBackups();
+loadRecipes(false);
   } catch (e) { report(e); }
   $("scan-btn").disabled = false;
 }
@@ -252,9 +257,170 @@ function handleLine(msg, list, before) {
   list.appendChild(li);
 }
 
+function fillSelect(select, values, current) {
+  select.textContent = "";
+  for (const value of ["", ...values]) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = value || "All";
+    select.appendChild(opt);
+  }
+  select.value = values.includes(current) ? current : "";
+}
+
+async function loadRecipes(useDevice) {
+  const modelSel = $("recipe-model");
+  const androidSel = $("recipe-android");
+  try {
+    let query = new URLSearchParams({ model: modelSel.value, android: androidSel.value });
+    let data = await api("/api/recipes?" + query);
+    const first = !modelSel.options.length;
+    if (first || useDevice) {
+      const wantModel = useDevice && device ? device.model : modelSel.value;
+      const wantAndroid = useDevice && device ? device.android : androidSel.value;
+      fillSelect(modelSel, data.filters.models, wantModel);
+      fillSelect(androidSel, data.filters.android, wantAndroid);
+      query = new URLSearchParams({ model: modelSel.value, android: androidSel.value });
+      data = await api("/api/recipes?" + query);
+    }
+    $("recipes-section").hidden = data.filters.models.length === 0;
+    renderRecipes(data.recipes);
+  } catch (e) { report(e); }
+}
+
+function renderRecipes(recipes) {
+  const box = $("recipes-list");
+  box.textContent = "";
+  if (!recipes.length) {
+    const p = document.createElement("p");
+    p.className = "note";
+    p.textContent = "No recipes for this model and Android version yet.";
+    box.appendChild(p);
+    return;
+  }
+  for (const r of recipes) {
+    const card = document.createElement("div");
+    card.className = "recipe";
+    const main = document.createElement("button");
+    main.type = "button";
+    main.className = "recipe-main";
+    const title = document.createElement("strong");
+    title.textContent = r.title;
+    const summary = document.createElement("span");
+    summary.textContent = r.summary;
+    const meta = document.createElement("span");
+    meta.className = "recipe-meta";
+    meta.textContent = `${r.models.join(", ")} - Android ${r.android.join(", ")} - ${r.package_count} apps in ${r.step_count} steps` +
+      (r.result && r.result.after_mb ? ` - free RAM ${r.result.before_mb} -> ${r.result.after_mb} MB` : "");
+    main.append(title, summary, document.createElement("br"), meta);
+    main.addEventListener("click", () => tickRecipe(r.id, null));
+    const details = document.createElement("details");
+    const label = document.createElement("summary");
+    label.textContent = "Steps, undo and sources";
+    details.appendChild(label);
+    details.addEventListener("toggle", () => { if (details.open) fillDetails(details, r.id); });
+    card.append(main, details);
+    box.appendChild(card);
+  }
+}
+
+async function recipeDetail(id) {
+  if (!recipeCache[id]) recipeCache[id] = await api("/api/recipes/" + encodeURIComponent(id));
+  return recipeCache[id];
+}
+
+async function fillDetails(details, id) {
+  if (details.dataset.filled) return;
+  details.dataset.filled = "1";
+  try {
+    const recipe = await recipeDetail(id);
+    recipe.steps.forEach((step, index) => {
+      const div = document.createElement("div");
+      div.className = "step";
+      const head = document.createElement("div");
+      head.className = "row";
+      const name = document.createElement("strong");
+      name.textContent = step.title;
+      head.appendChild(name);
+      if (step.manual) {
+        head.appendChild(tag("manual step"));
+      } else {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Tick this step";
+        btn.addEventListener("click", () => tickRecipe(id, index));
+        head.appendChild(btn);
+      }
+      const notes = document.createElement("div");
+      notes.className = "note";
+      notes.textContent = step.notes;
+      div.append(head, notes);
+      details.appendChild(div);
+    });
+    const lists = [["Did not hold", recipe.tried_and_failed], ["Undo", recipe.undo]];
+    for (const [heading, items] of lists) {
+      if (!items.length) continue;
+      const h = document.createElement("div");
+      h.className = "step";
+      const t = document.createElement("strong");
+      t.textContent = heading;
+      h.appendChild(t);
+      for (const item of items) {
+        const p = document.createElement("div");
+        p.className = "note";
+        p.textContent = item;
+        h.appendChild(p);
+      }
+      details.appendChild(h);
+    }
+    const src = document.createElement("div");
+    src.className = "step note";
+    for (const s of recipe.sources) {
+      if (!/^https:\/\//.test(s.url)) continue;
+      const a = document.createElement("a");
+      a.href = s.url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = s.title;
+      src.append(a, document.createElement("br"));
+    }
+    details.appendChild(src);
+  } catch (e) { report(e); }
+}
+
+async function tickRecipe(id, step) {
+  const note = $("recipe-note");
+  if (!rows.length) {
+    note.textContent = "Scan your TV first, then click the recipe again.";
+    return;
+  }
+  let recipe;
+  try { recipe = await recipeDetail(id); } catch (e) { report(e); return; }
+  const plan = planTick(recipe, rows, step);
+  const boxes = [...document.querySelectorAll("#apps-table input[data-pkg]")];
+  if (step === null) boxes.forEach((b) => { b.checked = false; });
+  const wanted = new Set(plan.tick);
+  boxes.forEach((b) => { if (wanted.has(b.dataset.pkg)) b.checked = true; });
+  updateSummary();
+  const sk = plan.skipped;
+  const parts = [];
+  if (sk.not_on_tv.length) parts.push(`${sk.not_on_tv.length} not on this TV`);
+  if (sk.disabled.length) parts.push(`${sk.disabled.length} already disabled`);
+  if (sk.locked.length) parts.push(`${sk.locked.length} locked (${sk.locked.join(", ")})`);
+  if (sk.manual.length) parts.push(`${sk.manual.length} in a manual step (${sk.manual.join(", ")})`);
+  note.textContent = `Ticked ${plan.tick.length} app${plan.tick.length === 1 ? "" : "s"}` +
+    (parts.length ? `; skipped: ${parts.join("; ")}` : "") +
+    ". Review the table, untick anything you want to keep, then Apply." +
+    (step === null ? "" : " (Added to the current selection.)");
+  $("apps-table").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("recipe-model").addEventListener("change", () => loadRecipes(false));
+$("recipe-android").addEventListener("change", () => loadRecipes(false));
 $("connect-btn").addEventListener("click", connect);
 $("scan-btn").addEventListener("click", scan);
 $("apply-btn").addEventListener("click", applySelected);
 $("show-locked").addEventListener("change", renderRows);
 $("host").addEventListener("keydown", (e) => { if (e.key === "Enter") connect(); });
 loadBackups();
+loadRecipes(false);

@@ -31,6 +31,14 @@ Opens `http://127.0.0.1:8080`. Click **Scan**, review the table, tick apps, clic
 `--lan` makes the page reachable from other devices on your network; there is no password,
 so leave it off unless you need it.
 
+## Recipes
+
+The **Recipes** card lists tested app lists per TV model and Android version, with the
+connected TV's model preselected. After a scan, click a recipe and the table ticks every app from
+it that your TV has and that is not locked. The page says how many were skipped and why. Review the
+table, then Apply as usual (confirm, backup, restore all still apply). Recipes are YAML files in
+`xiaomitv/data/recipes/`; see `docs/recipes/` to add one.
+
 ## Ratings
 
 - **safe**: telemetry, promo and setup leftovers. Pre-ticked.
