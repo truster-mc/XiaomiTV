@@ -70,6 +70,10 @@ com.xiaomi.mitv.smartshare:
   rating: tradeoff
   reason: Miracast screen mirroring.
   tradeoff: Mirroring a phone screen to the TV stops working.
+com.google.android.katniss:
+  rating: tradeoff
+  reason: Google Assistant voice search; uses about 60-100 MB of RAM.
+  tradeoff: The remote's microphone button and voice search stop working. Only disable if you never use voice search.
 com.mitv.dream:
   rating: tradeoff
   reason: Screensaver showing movie posters.
@@ -123,9 +127,6 @@ com.google.android.marvin.talkback:
   tradeoff: The screen reader is gone. Only disable if nobody uses it.
 
 # ---- keep: breaks the TV if disabled ----
-com.google.android.katniss:
-  rating: keep
-  reason: Voice search; disabling breaks the remote's microphone button.
 com.google.android.apps.tv.launcherx:
   rating: keep
   reason: Google TV home screen.

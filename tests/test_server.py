@@ -60,7 +60,7 @@ def test_apply_validation(client, fake_adb):
     cases = [
         ["com.x; reboot"],                # shell metacharacters
         ["com.not.on.the.tv"],            # not in the scan
-        ["com.google.android.katniss"],   # keep without force
+        ["com.mitv.livetv"],               # keep without force
         ["com.mitv.tvhome.mitvplus"],     # already disabled
         [],                               # nothing selected
     ]

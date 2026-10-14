@@ -46,7 +46,6 @@ def test_patchwall_safe_only_with_another_active_launcher(scan):
 
 def test_core_packages_are_keep(scan):
     _, rows = rows_by_name(scan)
-    assert rows["com.google.android.katniss"].rating == "keep"
     assert rows["com.mitv.livetv"].rating == "keep"
     assert rows[LAUNCHERX].rating == "keep"
 
@@ -110,3 +109,11 @@ def test_forum_sourced_entries_for_scanned_unknowns(scan):
     for name in ("com.xiaomi.mitv.tvmanager", "com.xiaomi.mitv.mediaexplorer"):
         assert rows[name].rating == "keep", name
         assert "not in the knowledge base" not in rows[name].reason.lower(), name
+
+
+def test_assistant_is_tradeoff_that_warns_about_the_microphone_button(scan):
+    _, rows = rows_by_name(scan)
+    row = rows["com.google.android.katniss"]
+    assert row.rating == "tradeoff"
+    assert row.selectable and not row.preticked
+    assert "microphone" in row.tradeoff.lower()
