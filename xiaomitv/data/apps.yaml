@@ -40,6 +40,18 @@ com.mitv.tvhome.atv:
 com.xiaomi.mitv.updateservice:
   rating: safe
   reason: Background update service for the PatchWall launcher.
+com.google.android.feedback:
+  rating: safe
+  reason: Sends error reports to Google; not needed to use the TV.
+com.google.android.syncadapters.calendar:
+  rating: safe
+  reason: Only needed for Google Calendar sync.
+com.android.printspooler:
+  rating: safe
+  reason: Printing service; the TV has no print settings.
+com.android.dreams.basic:
+  rating: safe
+  reason: Adds a plain-colour screensaver option; forum calls it useless.
 
 # ---- tradeoff: works, but something stops working ----
 com.mediatek.tv.service:
@@ -101,6 +113,14 @@ com.vk.tv:
   button_bound: true
   reason: VK Video app.
   tradeoff: VK Video is gone.
+com.google.android.tungsten.setupwraith:
+  rating: tradeoff
+  reason: First-time setup wizard (about 20 MB while running); forum says it can be disabled.
+  tradeoff: A forum post says this wizard can act as a fallback launcher. If the TV shows no home screen after a reboot, restore from the backup.
+com.google.android.marvin.talkback:
+  rating: tradeoff
+  reason: TalkBack screen reader for accessibility; not running.
+  tradeoff: The screen reader is gone. Only disable if nobody uses it.
 
 # ---- keep: breaks the TV if disabled ----
 com.google.android.katniss:
@@ -169,3 +189,9 @@ com.android.systemui:
 com.mediatek.tvinput:
   rating: keep
   reason: TV input framework.
+com.xiaomi.mitv.tvmanager:
+  rating: keep
+  reason: TV Manager; memory cleaner and permissions manager. Forum advises leaving it.
+com.xiaomi.mitv.mediaexplorer:
+  rating: keep
+  reason: Media browser tied to the gallery, video and music players.

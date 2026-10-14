@@ -96,3 +96,17 @@ def test_every_entry_has_valid_rating_and_reason():
         assert entry.reason, name
         if entry.rating == "tradeoff":
             assert entry.tradeoff, name
+
+
+def test_forum_sourced_entries_for_scanned_unknowns(scan):
+    _, rows = rows_by_name(scan)
+    for name in ("com.google.android.feedback", "com.google.android.syncadapters.calendar",
+                 "com.android.printspooler", "com.android.dreams.basic"):
+        assert rows[name].rating == "safe", name
+        assert rows[name].preticked, name
+    for name in ("com.google.android.tungsten.setupwraith", "com.google.android.marvin.talkback"):
+        assert rows[name].rating == "tradeoff", name
+        assert rows[name].tradeoff and not rows[name].preticked, name
+    for name in ("com.xiaomi.mitv.tvmanager", "com.xiaomi.mitv.mediaexplorer"):
+        assert rows[name].rating == "keep", name
+        assert "not in the knowledge base" not in rows[name].reason.lower(), name
