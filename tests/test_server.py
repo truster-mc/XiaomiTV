@@ -214,3 +214,28 @@ def test_corrupt_wrongly_shaped_backup_does_not_break_scan_or_restore(client, fa
     fake_adb.responses[collector.PM_DISABLED] += "package:com.miui.tv.analytics\n"
     assert post(client, "/api/restore", {"id": "20990101-000001"}).status_code == 404
     assert "pm enable --user 0 com.miui.tv.analytics" not in fake_adb.calls
+
+
+def test_recipes_list_and_filters(client):
+    data = client.get("/api/recipes").json["recipes"]
+    assert [r["id"] for r in data] == ["mitv-moor2-android11"]
+    first = data[0]
+    assert first["models"] == ["MiTV-MOOR2"] and first["android"] == ["11"]
+    assert first["result"]["after_mb"] > first["result"]["before_mb"]
+    assert first["step_count"] == 4 and first["package_count"] > 10
+    assert client.get("/api/recipes?model=mitv-moor2&android=11").json["recipes"]
+    assert client.get("/api/recipes?model=OTHER").json["recipes"] == []
+    assert client.get("/api/recipes?android=10").json["recipes"] == []
+
+
+def test_recipe_detail(client):
+    detail = client.get("/api/recipes/mitv-moor2-android11").json
+    assert detail["steps"][0]["packages"][0] == "com.mitv.tvhome.atv"
+    assert detail["steps"][3]["manual"] is True
+    assert detail["sources"] and detail["undo"]
+    assert client.get("/api/recipes/nope").status_code == 404
+
+
+def test_recipe_filter_options_list_known_models_and_versions(client):
+    opts = client.get("/api/recipes").json["filters"]
+    assert opts == {"models": ["MiTV-MOOR2"], "android": ["11"]}

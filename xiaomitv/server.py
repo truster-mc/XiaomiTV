@@ -10,6 +10,7 @@ from xiaomitv import collector, tweaks
 from xiaomitv.actions import PACKAGE_RE, disable_packages, enable_packages
 from xiaomitv.adb import AdbError
 from xiaomitv.analyzer import analyze, load_knowledge
+from xiaomitv.recipes import filter_recipes, load_recipes
 from xiaomitv.backup import (BackupError, create_snapshot, list_snapshots,
                              load_snapshot, packages_to_reenable)
 
@@ -21,6 +22,7 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
     app = Flask(__name__, static_folder=str(Path(__file__).parent / "static"),
                 static_url_path="/static")
     kb = knowledge if knowledge is not None else load_knowledge()
+    all_recipes = load_recipes()
     state = {"scan": None, "analysis": None}
     lock = threading.Lock()
     backup_dir = Path(backup_dir)
@@ -58,6 +60,24 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
         return sorted(pkg for pkg, e in last.items()
                       if e.get("action") == "disable" and e.get("ok") is True
                       and pkg in enabled)
+
+    @app.get("/api/recipes")
+    def recipes():
+        found = filter_recipes(all_recipes, request.args.get("model"), request.args.get("android"))
+        return jsonify(
+            recipes=[{"id": r.id, "title": r.title, "models": r.models, "android": r.android,
+                      "summary": r.summary, "result": r.result, "step_count": len(r.steps),
+                      "package_count": len({p for s in r.steps for p in s.packages})}
+                     for r in found],
+            filters={"models": sorted({m for r in all_recipes for m in r.models}),
+                     "android": sorted({a for r in all_recipes for a in r.android})})
+
+    @app.get("/api/recipes/<recipe_id>")
+    def recipe(recipe_id):
+        for r in all_recipes:
+            if r.id == recipe_id:
+                return jsonify(dataclasses.asdict(r))
+        return bad("Unknown recipe", 404)
 
     @app.post("/api/connect")
     def connect():

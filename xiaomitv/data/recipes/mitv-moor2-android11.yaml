@@ -1,0 +1,72 @@
+id: mitv-moor2-android11
+title: Xiaomi MiTV-MOOR2 (MI TV A2 family), Google TV on Android 11
+models: [MiTV-MOOR2]
+android: ["11"]
+summary: >-
+  Disable telemetry, promo and setup apps, drop apps you do not use, and replace the Google TV
+  launcher with Projectivy. Free RAM went from 822 MB to about 1,016 MB after a fresh reboot.
+result:
+  before_mb: 822
+  after_mb: 1016
+  note: Free memory after a fresh reboot on a 1.8 GB TV; swap use fell to about 15 MB.
+steps:
+  - title: "1. Safe apps: telemetry, promo, setup leftovers"
+    notes: >-
+      Frees little RAM (about 36 MB) but removes background services you never use. PatchWall
+      does not work in this region. Three of these were already disabled at the start.
+    packages:
+      - com.mitv.tvhome.atv
+      - com.xiaomi.mitv.updateservice
+      - com.miui.tv.analytics
+      - com.google.android.onetimeinitializer
+      - com.mstar.android.tv.disclaimercustomization
+      - com.xiaomi.statistic
+      - com.mitv.tvhome.michannel
+      - com.google.android.play.games
+      - com.mitv.tvhome.mitvplus
+      - com.google.android.youtube.tvmusic
+  - title: "2. More safe apps"
+    notes: Printing, plain screensaver, error reports and calendar sync. They use almost no RAM.
+    packages:
+      - com.android.printspooler
+      - com.android.dreams.basic
+      - com.google.android.feedback
+      - com.google.android.syncadapters.calendar
+  - title: "3. Trade-offs the owner accepted"
+    notes: >-
+      Each one removes a feature: Netflix and Prime Video (and their remote buttons), phone-as-remote,
+      Miracast, Google speech services, the TV self-test and sleep timer, the screen reader, setup
+      wizard fallback, and the Google Assistant (the remote's microphone button stops working).
+    packages:
+      - com.netflix.ninja
+      - com.amazon.amazonvideo.livingroom
+      - com.google.android.tv.remote.service
+      - com.xiaomi.mitv.smartshare
+      - com.google.android.tts
+      - com.mediatek.tv.service
+      - com.google.android.marvin.talkback
+      - com.google.android.katniss
+      - com.google.android.tungsten.setupwraith
+  - title: "4. Replace the Google launcher (manual)"
+    notes: >-
+      The biggest single saving: the Google launcher uses 90-115 MB, Projectivy about 50 MB.
+      Install Projectivy Launcher from the Play Store or the developer's official GitHub release
+      (not modified builds), enable its accessibility service and the Home override, then back up and
+      disable com.google.android.apps.tv.launcherx (the tool needs --force). Reboot and check Home.
+    manual: true
+    packages:
+      - com.google.android.apps.tv.launcherx
+tried_and_failed:
+  - >-
+    Cached-app freezer (settings put global cached_apps_freezer enabled, plus the device_config
+    values use_freezer and freeze_debounce_timeout): the device_config values were unset again
+    after a reboot, so it does not persist.
+undo:
+  - "One app: adb shell pm enable --user 0 <package>"
+  - "Everything: use the Backups list in the page and press Restore."
+  - "Google launcher: pm enable --user 0 com.google.android.apps.tv.launcherx, then reboot."
+sources:
+  - title: 4pda MI TV A2 thread, shtopor-89's app list
+    url: https://4pda.to/forum/index.php?showtopic=1063324&view=findpost&p=126227739
+  - title: Habr write-up on a Xiaomi Mi TV debloat
+    url: https://habr.com/ru/articles/1044486/
