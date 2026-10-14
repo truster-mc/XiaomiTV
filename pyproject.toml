@@ -1,0 +1,15 @@
+[project]
+name = "xiaomitv"
+version = "0.1.0"
+description = "Scan and debloat a Xiaomi TV over ADB from a local web page"
+requires-python = ">=3.12"
+dependencies = ["flask", "pyyaml"]
+
+[project.scripts]
+xiaomitv = "xiaomitv.__main__:main"
+
+[tool.setuptools.package-data]
+xiaomitv = ["data/*.yaml", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

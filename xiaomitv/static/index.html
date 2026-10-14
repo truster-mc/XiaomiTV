@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XiaomiTV Debloat</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>XiaomiTV Debloat</h1>
+    <p class="sub">Scan the TV, pick apps to disable, undo from a backup at any time.</p>
+  </header>
+
+  <div id="status-banner" class="banner" hidden role="alert"></div>
+
+  <section class="card" aria-label="Connection">
+    <div class="row">
+      <label for="host">TV address</label>
+      <input id="host" value="192.168.1.6" inputmode="decimal" autocomplete="off">
+      <button id="connect-btn" type="button">Connect</button>
+      <button id="scan-btn" type="button" disabled>Scan</button>
+    </div>
+    <div class="summary">
+      <span id="ram-summary">Memory: not scanned</span>
+      <span id="storage-summary">Storage: not scanned</span>
+    </div>
+  </section>
+
+  <section class="card" aria-label="Apps">
+    <div class="row between">
+      <h2>Apps</h2>
+      <label class="inline"><input type="checkbox" id="show-locked"> Show locked apps</label>
+    </div>
+    <div class="table-wrap">
+      <table id="apps-table">
+        <thead><tr><th></th><th>App</th><th class="num">RAM</th><th>Rating</th><th>Why</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="row between apply-bar">
+      <span id="apply-summary">Nothing selected</span>
+      <button id="apply-btn" type="button" class="primary" disabled>Apply</button>
+    </div>
+    <ul id="progress-list"></ul>
+    <p id="reminders" class="note" hidden>
+      Reboot the TV before judging any lag change. Firmware updates can bring removed apps back,
+      so scan again afterwards. Turn USB debugging off when you are finished.
+    </p>
+  </section>
+
+  <section class="card" id="tweaks-section" aria-label="Tweaks">
+    <h2>Optional tweaks</h2>
+    <div id="tweaks-list" class="note">Scan to see tweaks.</div>
+  </section>
+
+  <section class="card" aria-label="Backups">
+    <h2>Backups</h2>
+    <ul id="backups-list"><li class="note">None yet.</li></ul>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

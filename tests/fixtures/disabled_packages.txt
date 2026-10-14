@@ -1,0 +1,3 @@
+package:com.amazon.amazonvideo.livingroom
+package:com.google.android.youtube.tvmusic
+package:com.mitv.tvhome.mitvplus
