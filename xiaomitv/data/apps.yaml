@@ -54,10 +54,6 @@ com.android.dreams.basic:
   reason: Adds a plain-colour screensaver option; forum calls it useless.
 
 # ---- tradeoff: works, but something stops working ----
-com.mediatek.tv.service:
-  rating: tradeoff
-  reason: Handles TV self-diagnosis and the sleep timer.
-  tradeoff: Disables the 5 AM self-test that wakes the TV, but also the sleep timer and other TV services.
 com.google.android.tv.remote.service:
   rating: tradeoff
   reason: Lets a phone act as the remote.
@@ -196,3 +192,6 @@ com.xiaomi.mitv.tvmanager:
 com.xiaomi.mitv.mediaexplorer:
   rating: keep
   reason: Media browser tied to the gallery, video and music players.
+com.mediatek.tv.service:
+  rating: keep
+  reason: Mediatek TV framework service. Disabling it left the HDMI inputs (PS5, Steam machine) with a black screen on a MiTV-MOOR2.

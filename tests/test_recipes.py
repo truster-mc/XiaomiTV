@@ -85,3 +85,9 @@ def test_filter_by_model_and_android(tmp_path):
     assert ids(android="10") == ["r2"]
     assert ids(model="MiTV-MOOR2", android="10") == []
     assert ids(model="", android="") == ["r1", "r2"]
+
+
+def test_moor2_recipe_does_not_disable_the_tv_framework_service():
+    r = next(r for r in load_recipes() if "MiTV-MOOR2" in r.models)
+    assert "com.mediatek.tv.service" not in {p for s in r.steps for p in s.packages}
+    assert any("com.mediatek.tv.service" in note and "HDMI" in note for note in r.tried_and_failed)

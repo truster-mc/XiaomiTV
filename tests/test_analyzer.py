@@ -52,7 +52,7 @@ def test_core_packages_are_keep(scan):
 
 def test_tradeoff_rows_are_not_preticked_and_explain_cost(scan):
     _, rows = rows_by_name(scan)
-    row = rows["com.mediatek.tv.service"]
+    row = rows["com.xiaomi.mitv.smartshare"]
     assert row.rating == "tradeoff"
     assert row.selectable and not row.preticked
     assert row.tradeoff
@@ -117,3 +117,10 @@ def test_assistant_is_tradeoff_that_warns_about_the_microphone_button(scan):
     assert row.rating == "tradeoff"
     assert row.selectable and not row.preticked
     assert "microphone" in row.tradeoff.lower()
+
+
+def test_mediatek_tv_service_is_locked_because_it_breaks_hdmi_inputs(scan):
+    _, rows = rows_by_name(scan)
+    row = rows["com.mediatek.tv.service"]
+    assert row.rating == "keep"
+    assert "hdmi" in row.reason.lower()

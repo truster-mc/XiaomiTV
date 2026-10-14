@@ -35,7 +35,7 @@ steps:
   - title: "3. Trade-offs the owner accepted"
     notes: >-
       Each one removes a feature: Netflix and Prime Video (and their remote buttons), phone-as-remote,
-      Miracast, Google speech services, the TV self-test and sleep timer, the screen reader, setup
+      Miracast, Google speech services, the screen reader, setup
       wizard fallback, and the Google Assistant (the remote's microphone button stops working).
     packages:
       - com.netflix.ninja
@@ -43,7 +43,6 @@ steps:
       - com.google.android.tv.remote.service
       - com.xiaomi.mitv.smartshare
       - com.google.android.tts
-      - com.mediatek.tv.service
       - com.google.android.marvin.talkback
       - com.google.android.katniss
       - com.google.android.tungsten.setupwraith
@@ -57,6 +56,10 @@ steps:
     packages:
       - com.google.android.apps.tv.launcherx
 tried_and_failed:
+  - >-
+    Disabling com.mediatek.tv.service (the Mediatek TV framework) left HDMI inputs (PS5, Steam
+    machine) with a black screen even though the device name showed. Re-enabling it and rebooting
+    fixed it. Leave it enabled.
   - >-
     Cached-app freezer (settings put global cached_apps_freezer enabled, plus the device_config
     values use_freezer and freeze_debounce_timeout): the device_config values were unset again
