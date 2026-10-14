@@ -83,3 +83,23 @@ def test_each_result_is_logged_before_the_next_command_runs(tmp_path):
     entry = log_lines(log)[0]
     assert entry["action"] == "disable" and entry["package"] == "com.a.one" and entry["ok"]
     assert "time" in entry
+
+
+def test_unexpected_exception_is_a_failed_result_and_batch_continues(tmp_path):
+    fake = FakeAdb(
+        {cmd("com.a.one"): DISABLED.format("com.a.one"),
+         cmd("com.a.three"): DISABLED.format("com.a.three")},
+        fail={cmd("com.a.two"): RuntimeError("weird")})
+    results = list(disable_packages(fake, ["com.a.one", "com.a.two", "com.a.three"],
+                                    tmp_path / "log"))
+    assert [r.ok for r in results] == [True, False, True]
+    assert "weird" in results[1].message
+    assert len(log_lines(tmp_path / "log")) == 3
+
+
+def test_unwritable_log_does_not_drop_results(tmp_path):
+    log = tmp_path / "log-is-a-directory"
+    log.mkdir()
+    fake = FakeAdb({cmd("com.a.one"): DISABLED.format("com.a.one")})
+    results = list(disable_packages(fake, ["com.a.one"], log))
+    assert results[0].ok

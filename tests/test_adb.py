@@ -80,3 +80,34 @@ def test_shell_nonzero_raises_adberror(monkeypatch):
 def test_shell_without_connection_raises_adberror():
     with pytest.raises(AdbError):
         Adb().shell("pm list packages")
+
+
+def test_shell_device_gone_gives_hinted_unreachable(monkeypatch):
+    for stderr in ("error: device '1.2.3.4:5555' not found", "error: device offline",
+                   "error: no devices/emulators found"):
+        patch_run(monkeypatch, lambda cmd, s=stderr: completed("", 1, s))
+        adb = Adb()
+        adb.serial = "1.2.3.4:5555"
+        with pytest.raises(TvUnreachable) as exc:
+            adb.shell("pm list packages")
+        assert exc.value.hint, stderr
+
+
+def test_shell_unauthorized_after_connect(monkeypatch):
+    patch_run(monkeypatch, lambda cmd: completed("", 1, "error: device unauthorized."))
+    adb = Adb()
+    adb.serial = "1.2.3.4:5555"
+    with pytest.raises(Unauthorized) as exc:
+        adb.shell("pm list packages")
+    assert exc.value.hint
+
+
+def test_oserror_from_subprocess_becomes_adberror(monkeypatch):
+    def boom(cmd, **kwargs):
+        raise PermissionError("not executable")
+
+    monkeypatch.setattr(subprocess, "run", boom)
+    adb = Adb()
+    adb.serial = "x:5555"
+    with pytest.raises(AdbError):
+        adb.shell("true")

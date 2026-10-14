@@ -16,7 +16,8 @@ from xiaomitv.backup import (BackupError, create_snapshot, list_snapshots,
 _HOST_RE = re.compile(r"^[A-Za-z0-9.\-]{1,253}$")
 
 
-def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None) -> Flask:
+def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
+               allow_force: bool = False) -> Flask:
     app = Flask(__name__, static_folder=str(Path(__file__).parent / "static"),
                 static_url_path="/static")
     kb = knowledge if knowledge is not None else load_knowledge()
@@ -44,21 +45,19 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None) -> Flask:
         return {t.id: tweaks.read_state(adb, t) for t in tweaks.TWEAKS.values()}
 
     def came_back(scan) -> list[str]:
-        snaps = list_snapshots(backup_dir)
-        if not snaps or not log_path.exists():
+        if not log_path.exists():
             return []
-        was = load_snapshot(backup_dir, snaps[0]["id"])["packages"]
         last: dict[str, dict] = {}
         for line in log_path.read_text().splitlines():
             try:
                 entry = json.loads(line)
-            except json.JSONDecodeError:
+                last[entry["package"]] = entry
+            except (json.JSONDecodeError, KeyError, TypeError):
                 continue
-            last[entry["package"]] = entry
         enabled = {p.name for p in scan.packages if p.enabled}
         return sorted(pkg for pkg, e in last.items()
-                      if e["action"] == "disable" and e["ok"]
-                      and was.get(pkg) is True and pkg in enabled)
+                      if e.get("action") == "disable" and e.get("ok") is True
+                      and pkg in enabled)
 
     @app.post("/api/connect")
     def connect():
@@ -92,7 +91,8 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None) -> Flask:
         if state["analysis"] is None:
             return bad("Run a scan first", 409)
         body = request.get_json(silent=True) or {}
-        packages, force = body.get("packages"), bool(body.get("force"))
+        packages = body.get("packages")
+        force = allow_force and body.get("force") is True
         if not isinstance(packages, list) or not packages:
             return bad("Select at least one app")
         rows = {r.package: r for r in state["analysis"].rows}
@@ -111,8 +111,18 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None) -> Flask:
             def stream():
                 yield json.dumps({"snapshot": snapshot}) + "\n"
                 with lock:
-                    for result in disable_packages(adb, packages, log_path):
-                        yield json.dumps(dataclasses.asdict(result)) + "\n"
+                    reported = set()
+                    try:
+                        for result in disable_packages(adb, packages, log_path):
+                            reported.add(result.package)
+                            yield json.dumps(dataclasses.asdict(result)) + "\n"
+                    except Exception as exc:
+                        yield json.dumps({"error": f"{type(exc).__name__}: {exc}",
+                                          "hint": "The batch stopped early."}) + "\n"
+                        for pkg in packages:
+                            if pkg not in reported:
+                                yield json.dumps({"package": pkg, "ok": False,
+                                                  "message": "Not attempted: the batch stopped early"}) + "\n"
                     try:
                         _, available = collector.parse_proc_meminfo(
                             adb.shell(collector.PROC_MEMINFO))

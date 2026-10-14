@@ -1,6 +1,7 @@
 import json
 
 from xiaomitv import collector
+from xiaomitv.actions import Result
 from xiaomitv.adb import AdbNotInstalled
 from xiaomitv.server import create_app
 
@@ -77,10 +78,25 @@ def test_apply_streams_snapshot_results_and_done(client, tmp_path):
     assert len((tmp_path / "changes.log").read_text().splitlines()) == 2
 
 
-def test_apply_keep_package_with_force(client):
+def test_apply_keep_package_needs_force_flag_at_launch(fake_adb, tmp_path):
+    forced = create_app(fake_adb, tmp_path / "b", tmp_path / "l", allow_force=True).test_client()
+    post(forced, "/api/scan")
+    assert apply_lines(forced, ["com.mitv.toolhouse"], force=True)[1]["ok"]
+
+
+def test_force_in_request_alone_is_ignored(client):
     post(client, "/api/scan")
-    lines = apply_lines(client, ["com.mitv.toolhouse"], force=True)
-    assert lines[1]["ok"]
+    for force in (True, "false", "true", 1):
+        resp = post(client, "/api/apply", {"packages": ["com.mitv.toolhouse"], "force": force})
+        assert resp.status_code == 400, force
+
+
+def test_force_must_be_boolean_true_even_when_allowed(fake_adb, tmp_path):
+    forced = create_app(fake_adb, tmp_path / "b", tmp_path / "l", allow_force=True).test_client()
+    post(forced, "/api/scan")
+    for force in ("false", "true", 1):
+        resp = post(forced, "/api/apply", {"packages": ["com.mitv.toolhouse"], "force": force})
+        assert resp.status_code == 400, force
 
 
 def test_restore_unknown_id_is_404(client):
@@ -131,3 +147,70 @@ def test_tweak_enable_then_disable(client, fake_adb, tmp_path):
 def test_tweak_unknown_and_bad_action(client):
     assert post(client, "/api/tweaks/nope", {"action": "enable"}).status_code == 404
     assert post(client, "/api/tweaks/cached-app-freezer", {"action": "explode"}).status_code == 400
+
+
+def test_came_back_still_flagged_after_a_later_snapshot(client, fake_adb):
+    post(client, "/api/scan")
+    apply_lines(client, ["com.miui.tv.analytics"])
+    # the TV reports analytics disabled when the tweak's snapshot is taken ...
+    fake_adb.responses[collector.PM_DISABLED] += "package:com.miui.tv.analytics\n"
+    post(client, "/api/tweaks/cached-app-freezer", {"action": "enable"})
+    # ... then the app re-enables itself
+    fake_adb.responses[collector.PM_DISABLED] = fake_adb.responses[collector.PM_DISABLED].replace(
+        "package:com.miui.tv.analytics\n", "")
+    assert post(client, "/api/scan").json["reenabled_since_backup"] == ["com.miui.tv.analytics"]
+
+
+def test_restored_app_is_not_flagged_as_came_back(client, fake_adb):
+    post(client, "/api/scan")
+    snap = apply_lines(client, ["com.miui.tv.analytics"])[0]["snapshot"]
+    fake_adb.responses[collector.PM_DISABLED] += "package:com.miui.tv.analytics\n"
+    post(client, "/api/restore", {"id": snap})
+    fake_adb.responses[collector.PM_DISABLED] = fake_adb.responses[collector.PM_DISABLED].replace(
+        "package:com.miui.tv.analytics\n", "")
+    assert post(client, "/api/scan").json["reenabled_since_backup"] == []
+
+
+def test_stream_survives_unexpected_error_for_one_package(fake_adb, tmp_path):
+    def handler(command):
+        if command.endswith("com.xiaomi.statistic"):
+            raise RuntimeError("kaboom")
+        return fake_adb_handler(command)
+
+    from tests.conftest import _echo_handler as fake_adb_handler
+    fake_adb.handler = handler
+    client = create_app(fake_adb, tmp_path / "b", tmp_path / "l").test_client()
+    post(client, "/api/scan")
+    lines = apply_lines(client, SAFE)
+    results = {l["package"]: l for l in lines if "package" in l}
+    assert results["com.miui.tv.analytics"]["ok"]
+    assert not results["com.xiaomi.statistic"]["ok"]
+    assert lines[-1]["done"]
+
+
+def test_stream_reports_remaining_packages_failed_if_stream_breaks(fake_adb, tmp_path, monkeypatch):
+    import xiaomitv.server as server
+
+    def broken(adb, packages, log_path):
+        yield Result(packages[0], True, "ok")
+        raise MemoryError("out of memory")
+
+    monkeypatch.setattr(server, "disable_packages", broken)
+    client = create_app(fake_adb, tmp_path / "b", tmp_path / "l").test_client()
+    post(client, "/api/scan")
+    lines = apply_lines(client, SAFE)
+    assert any("error" in l for l in lines)
+    assert [l["ok"] for l in lines if "package" in l] == [True, False]
+    assert lines[-1]["done"]
+
+
+def test_corrupt_wrongly_shaped_backup_does_not_break_scan_or_restore(client, fake_adb, tmp_path):
+    (tmp_path / "backups").mkdir()
+    (tmp_path / "backups" / "20990101-000000.json").write_text("null")
+    (tmp_path / "backups" / "20990101-000001.json").write_text(
+        json.dumps({"packages": {"com.miui.tv.analytics": True}, "tweaks": []}))
+    assert post(client, "/api/scan").status_code == 200
+    assert client.get("/api/backups").status_code == 200
+    fake_adb.responses[collector.PM_DISABLED] += "package:com.miui.tv.analytics\n"
+    assert post(client, "/api/restore", {"id": "20990101-000001"}).status_code == 404
+    assert "pm enable --user 0 com.miui.tv.analytics" not in fake_adb.calls

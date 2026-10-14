@@ -22,3 +22,8 @@ def test_options_are_parsed():
 
 def test_build_app_returns_flask_app():
     assert isinstance(build_app(parse_args([])), Flask)
+
+
+def test_force_flag_is_off_by_default_and_reaches_the_app():
+    assert parse_args([]).force is False
+    assert parse_args(["--force"]).force is True

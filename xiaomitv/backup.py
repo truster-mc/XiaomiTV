@@ -29,6 +29,20 @@ def create_snapshot(scan: Scan, tweak_states: dict[str, dict[str, str | None]],
     return snap_id
 
 
+def _valid(data) -> bool:
+    if not isinstance(data, dict):
+        return False
+    packages = data.get("packages")
+    if not isinstance(packages, dict) or not all(isinstance(v, bool) for v in packages.values()):
+        return False
+    tweaks = data.get("tweaks", {})
+    if not isinstance(tweaks, dict):
+        return False
+    return all(isinstance(state, dict)
+               and all(v is None or isinstance(v, str) for v in state.values())
+               for state in tweaks.values())
+
+
 def load_snapshot(directory: Path, snapshot_id: str) -> dict:
     if not _ID_RE.match(snapshot_id or ""):
         raise BackupError(f"Invalid backup id: {snapshot_id!r}")
@@ -39,7 +53,7 @@ def load_snapshot(directory: Path, snapshot_id: str) -> dict:
         raise BackupError(f"No backup named {snapshot_id}")
     except (json.JSONDecodeError, OSError):
         raise BackupError(f"Backup {snapshot_id} is unreadable")
-    if not isinstance(data.get("packages"), dict):
+    if not _valid(data):
         raise BackupError(f"Backup {snapshot_id} is corrupt")
     return data
 

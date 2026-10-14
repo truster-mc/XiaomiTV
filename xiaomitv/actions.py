@@ -30,11 +30,16 @@ def _run(adb, packages: list[str], log_path: Path, action: str,
                 result = Result(package, ok, out if not ok else success)
             except AdbError as exc:
                 result = Result(package, False, str(exc))
-        with log_path.open("a") as log:
-            log.write(json.dumps({
-                "time": datetime.now().isoformat(timespec="seconds"),
-                "action": action, "package": package,
-                "ok": result.ok, "message": result.message}) + "\n")
+            except Exception as exc:  # one odd failure must not drop the rest of the batch
+                result = Result(package, False, f"{type(exc).__name__}: {exc}")
+        try:
+            with log_path.open("a") as log:
+                log.write(json.dumps({
+                    "time": datetime.now().isoformat(timespec="seconds"),
+                    "action": action, "package": package,
+                    "ok": result.ok, "message": result.message}) + "\n")
+        except OSError:
+            pass  # the result still reaches the caller; the snapshot is the safety net
         yield result
 
 

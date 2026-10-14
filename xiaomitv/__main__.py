@@ -13,6 +13,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--port", type=int, default=8080)
     p.add_argument("--lan", action="store_true",
                    help="listen on all network interfaces (anyone on your network can then change the TV)")
+    p.add_argument("--force", action="store_true",
+                   help="let apps rated 'keep' be disabled when a request asks for it (dangerous)")
     p.add_argument("--no-browser", action="store_true", help="do not open the browser")
     p.add_argument("--backup-dir", type=Path, default=Path("backups"))
     p.add_argument("--log", type=Path, default=Path("changes.log"))
@@ -22,7 +24,7 @@ def parse_args(argv=None) -> argparse.Namespace:
 
 
 def build_app(args, adb=None):
-    return create_app(adb or Adb(), args.backup_dir, args.log)
+    return create_app(adb or Adb(), args.backup_dir, args.log, allow_force=args.force)
 
 
 def main(argv=None) -> None:

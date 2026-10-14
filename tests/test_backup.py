@@ -59,3 +59,19 @@ def test_packages_to_reenable_only_those_disabled_since(scan, tmp_path):
     assert packages_to_reenable(snapshot, current) == ["com.miui.tv.analytics"]
     # mitvplus was already disabled in the snapshot, so it is never re-enabled
     assert "com.mitv.tvhome.mitvplus" not in packages_to_reenable(snapshot, current)
+
+
+def test_wrongly_shaped_snapshots_raise_backup_error_and_are_skipped(scan, tmp_path):
+    good = create_snapshot(scan, {}, tmp_path, now=NOW)
+    shapes = {
+        "20990101-000001": "null",
+        "20990101-000002": "[]",
+        "20990101-000003": json.dumps({"packages": {"a.b": "yes"}}),
+        "20990101-000004": json.dumps({"packages": {"a.b": True}, "tweaks": []}),
+        "20990101-000005": json.dumps({"packages": {"a.b": True}, "tweaks": {"t": []}}),
+    }
+    for name, text in shapes.items():
+        (tmp_path / f"{name}.json").write_text(text)
+        with pytest.raises(BackupError):
+            load_snapshot(tmp_path, name)
+    assert [i["id"] for i in list_snapshots(tmp_path)] == [good]

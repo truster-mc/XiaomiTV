@@ -32,12 +32,15 @@ class Adb:
 
     def _run(self, args: list[str]) -> subprocess.CompletedProcess:
         try:
-            return subprocess.run([self.binary, *args], capture_output=True,
-                                  text=True, timeout=self.timeout)
+            return subprocess.run([self.binary, *args], capture_output=True, text=True,
+                                  errors="replace", timeout=self.timeout)
         except FileNotFoundError:
             raise AdbNotInstalled("adb is not installed")
         except subprocess.TimeoutExpired:
             raise TvUnreachable("adb timed out")
+        except OSError as exc:
+            raise AdbError(f"Could not run adb: {exc}",
+                           hint="Check that the adb binary is executable.")
 
     def connect(self, host: str, port: int = 5555) -> None:
         serial = f"{host}:{port}"
@@ -60,5 +63,12 @@ class Adb:
             raise AdbError("Not connected to a TV", hint="Connect first.")
         out = self._run(["-s", self.serial, "shell", command])
         if out.returncode != 0:
-            raise AdbError((out.stderr or out.stdout).strip() or "adb shell failed")
+            message = (out.stderr or out.stdout).strip() or "adb shell failed"
+            lowered = message.lower()
+            if "unauthorized" in lowered:
+                raise Unauthorized(message)
+            if any(word in lowered for word in ("not found", "offline", "no devices", "closed")):
+                raise TvUnreachable(message, hint=TvUnreachable.hint +
+                                    " Then press Connect again.")
+            raise AdbError(message)
         return out.stdout
