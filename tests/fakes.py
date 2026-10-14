@@ -7,9 +7,10 @@ class FakeAdb:
     serial = "fake:5555"
 
     def __init__(self, responses: dict[str, str] | None = None,
-                 fail: dict[str, Exception] | None = None):
+                 fail: dict[str, Exception] | None = None, handler=None):
         self.responses = responses or {}
         self.fail = fail or {}
+        self.handler = handler  # optional fallback: command -> output or None
         self.calls: list[str] = []
 
     def connect(self, host: str, port: int = 5555) -> None:
@@ -19,4 +20,10 @@ class FakeAdb:
         self.calls.append(command)
         if command in self.fail:
             raise self.fail[command]
-        return self.responses.get(command, "")
+        if command in self.responses:
+            return self.responses[command]
+        if self.handler:
+            out = self.handler(command)
+            if out is not None:
+                return out
+        return ""
