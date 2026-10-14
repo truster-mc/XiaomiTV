@@ -4,7 +4,7 @@ import re
 import threading
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, send_from_directory
 
 from xiaomitv import collector, tweaks
 from xiaomitv.actions import PACKAGE_RE, disable_packages, enable_packages
@@ -24,6 +24,10 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None) -> Flask:
     lock = threading.Lock()
     backup_dir = Path(backup_dir)
     log_path = Path(log_path)
+
+    @app.get("/")
+    def index():
+        return send_from_directory(app.static_folder, "index.html")
 
     @app.errorhandler(AdbError)
     def adb_error(exc):
