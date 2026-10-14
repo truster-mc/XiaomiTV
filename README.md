@@ -33,11 +33,59 @@ so leave it off unless you need it.
 
 ## Recipes
 
-The **Recipes** card lists tested app lists per TV model and Android version, with the
-connected TV's model preselected. After a scan, click a recipe and the table ticks every app from
-it that your TV has and that is not locked. The page says how many were skipped and why. Review the
-table, then Apply as usual (confirm, backup, restore all still apply). Recipes are YAML files in
-`xiaomitv/data/recipes/`; see `docs/recipes/` to add one.
+A recipe is a tested list of changes for one TV model and Android version: which apps to disable
+and why, what it costs, what did not work, and how to undo it. The **Recipes** card in the page shows
+them.
+
+### Using a recipe
+
+1. Connect and **Scan**. The **Model** and **Android** filters preselect your TV; choose "All" to see
+   every recipe.
+2. Click a recipe. The apps table replaces its selection with every app from the recipe that your
+   TV has, that is still enabled, and that is not locked. The line above the list says how many were
+   skipped and why (not on this TV, already disabled, locked, or in a manual step).
+3. Open **Steps, undo and sources** to read each step. **Tick this step** adds one step's apps to
+   the current selection. Manual steps, like swapping the launcher, are text only and never ticked.
+4. Review the table, untick anything you want to keep, then **Apply**. The usual confirm, backup and
+   Restore still apply, and locked ("keep") apps stay locked.
+
+A recipe is a starting point from one TV. Firmware differs, so check what each step costs and test
+your TV after applying it (reboot, then try the HDMI inputs, remote buttons and your apps).
+
+### Included recipes
+
+| Recipe | TV | Android | Result |
+|---|---|---|---|
+| `mitv-moor2-android11` | Xiaomi MiTV-MOOR2 (MI TV A2 family), Google TV | 11 | free RAM 822 MB to about 1,016 MB |
+
+### Adding a recipe
+
+Recipes are YAML files in `xiaomitv/data/recipes/`. Copy
+`mitv-moor2-android11.yaml` and change:
+
+```yaml
+id: my-tv-android11          # unique
+title: Human readable title
+models: [MiTV-MOOR2]         # as reported by `getprop ro.product.model`
+android: ["11"]              # as reported by `getprop ro.build.version.release`
+summary: One or two sentences.
+result: {before_mb: 822, after_mb: 1016, note: what was measured}
+steps:
+  - title: "1. Safe apps"
+    notes: Why, and what it costs.
+    packages: [com.example.app]
+  - title: "2. A manual step"
+    notes: Things the tool cannot do for you.
+    manual: true             # shown as text, never ticked
+tried_and_failed: ["What did not work or broke, and the fix."]
+undo: ["How to put it back."]
+sources: [{title: Forum thread, url: "https://example.org"}]
+```
+
+Package names must be valid Android package names, and a recipe needs at least one model, one
+Android version and one step. `python -m pytest` checks every bundled recipe. A recipe can only
+tick apps that the knowledge base does not lock, so also add or adjust the matching entries in
+`xiaomitv/data/apps.yaml` when you learn that an app is safe or breaks something.
 
 ## Ratings
 
