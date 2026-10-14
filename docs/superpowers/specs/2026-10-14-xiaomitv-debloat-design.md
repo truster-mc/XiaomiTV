@@ -1,59 +1,90 @@
 # XiaomiTV Debloat Tool — Design
 
 ## Goal
-A Python command-line tool that inspects a Xiaomi TV over ADB (apps, memory, CPU, storage)
-and helps the user disable bloat so the TV is less laggy. Nothing is changed without
-per-app confirmation, and every change can be undone.
+A local web app (Python backend, plain HTML/JS page) that connects to a Xiaomi TV over ADB,
+scans its apps, memory, CPU and storage, recommends which apps to disable, and applies the
+user's choices. Every change is preceded by an automatic backup snapshot and can be undone.
 
 ## Target device (from the 2026-10-14 scan)
-- Xiaomi `MiTV-MOOR2`, Google TV (`launcherx`), Android 11 / API 30, MediaTek SoC
+- Xiaomi `MiTV-MOOR2` (Xiaomi MI TV A2 family), Google TV (`launcherx`), Android 11 / API 30, MediaTek
 - 1.8 GB RAM total, ~830 MB available, 4 cores, 4 GB /data (57% used)
 - 132 packages (129 system, 3 user: VLC, Kinopub, Jellyfin)
 - Already disabled: Amazon Video, YouTube Music, Mi TV Plus
 - Biggest memory users: `com.mitv.livetv` (120 MB), `com.google.android.gms` (112 MB),
   `com.google.android.katniss:interactor` (73 MB), `xiaomi.tvservice`,
   `com.xiaomi.mitv.updateservice`, `com.miui.tv.analytics`, `teatro_tv_browser`
+- PatchWall does not work in the user's region and the TV uses the Google TV launcher,
+  so PatchWall and its services are first-choice candidates.
 
 ## Scope and constraints
 - Connects over `adb connect <ip>:5555` from the laptop. No root, no flashing.
-- Actions use `pm disable-user --user 0 <pkg>` only (reversible). No uninstall by default.
+- Actions use `pm disable-user --user 0 <pkg>` only (reversible). No uninstall: it can bootloop
+  after a factory reset, and uninstalled apps can be restored by the TV on reboot.
 - Unknown packages are always rated "keep".
-- Out of scope: GUI, multi-device support, auto-removal without confirmation.
+- Out of scope for v1: multi-device support, auto-removal without confirmation, stub-APK
+  tricks, the region-change trick, the `pm compile` optimization, rooting.
 
 ## Architecture
-Three units with one job each, under `xiaomitv/`:
+Layers under `xiaomitv/`, each with one job:
 
-1. **collector** — runs read-only `adb shell` commands and returns plain data:
-   packages (system / user / disabled), `dumpsys meminfo` (PSS per process),
-   `top` snapshot, `df`, device properties. Depends only on an `adb` wrapper.
-2. **analyzer** — joins collector data with a bundled `apps.yaml` knowledge base
-   (package → rating `safe` / `probably-safe` / `keep`, plus a one-line reason).
-   Ranks candidates by memory use × safety. Pure function, no I/O.
-3. **actions** — `disable`, `enable`, `undo`. Writes a JSON log of every change to
-   `changes.json`, so `undo` can re-enable exactly what was disabled.
+1. **adb** — thin wrapper that runs `adb` commands; swappable with a fake in tests.
+2. **collector** — read-only queries: packages (system / user / disabled), `dumpsys meminfo`
+   (PSS per process), `top` snapshot, `df`, device properties, active launcher.
+3. **analyzer** — joins collector data with the bundled `apps.yaml` knowledge base
+   (package → rating, reason, trade-off) and ranks candidates by memory use × safety. Pure function.
+4. **backup** — before every apply, writes `backups/<timestamp>.json` with the enabled/disabled
+   state of every package, device info and free RAM. `restore` re-enables exactly what the
+   snapshot says.
+5. **actions** — `disable` / `enable`, one package at a time, logging each result before the next.
+6. **server** — Flask app on `127.0.0.1:8080` exposing `/connect`, `/scan`, `/apply`,
+   `/backups`, `/restore`. A `--lan` flag (off by default, prints a warning) allows phone access.
+7. **page** — single static page: connection bar, RAM/storage summary + Scan button, app table
+   (name, RAM, rating, reason, checkbox), Apply bar, Backups list with Restore.
 
-A thin `cli.py` wires them: `scan`, `report`, `disable`, `undo`.
+## Ratings
+Three levels, seeded from the 4pda MI TV A2 thread (shtopor-89 and meth_lab lists) and the
+Habr Mi TV write-up, then checked against the real scan:
+- **safe** — telemetry and promo apps, setup leftovers: `com.miui.tv.analytics`,
+  `com.xiaomi.statistic`, `com.mitv.tvhome.michannel`, `com.mitv.tvhome.mitvplus`,
+  `com.xiaomi.floatingframe`, `com.google.android.onetimeinitializer`,
+  `com.mstar.android.tv.disclaimercustomization`, `com.google.android.play.games`,
+  `com.google.android.videos`, `com.google.android.youtube.tvmusic`, PatchWall
+  (`com.mitv.tvhome.atv`) and `com.xiaomi.mitv.updateservice`.
+  PatchWall is rated safe only if another launcher (here `launcherx`) is installed and enabled.
+- **trade-off** — pre-unticked, shown with what stops working: `com.mediatek.tv.service`
+  (5 AM wake-up and sleep timer), `com.google.android.tv.remote.service` (phone-as-remote),
+  `com.mitv.milinkservice` / `com.xiaomi.mitv.smartshare` (casting), `com.mitv.dream`
+  (screensaver), `com.google.android.tts`, regional streaming apps (Netflix, Prime Video, etc.).
+  Apps tied to remote-control buttons are disable-only and labelled so, because uninstalling
+  breaks button remapping.
+- **keep** — locked unless `--force`: `com.google.android.katniss` (remote microphone),
+  Android TV Home / `launcherx`, `com.mitv.livetv` and Live TV setup (also manage HDMI inputs;
+  the Habr post disables `com.mitv.livetv`, the forum advises against it, so it is kept),
+  `com.xiaomi.android.tvsetup.partnercustomizer`, `com.xm.webcontent`, `com.mitv.overseaservice`,
+  Mi video/music/gallery, `milegal`, `gms`, `webview`, input method, settings, system UI.
+Matching uses package names from the scan, since they differ between firmware builds.
 
 ## Data flow
-`scan` → collector → analyzer → report (table: package, RAM, rating, reason)
-→ user picks apps → `actions.disable` → log → `undo` reverses from the log.
+Connect → scan (collector → analyzer) → table → user ticks apps → confirm → backup snapshot →
+disable one by one with live per-app status → show RAM change. After the TV reboots, a re-scan
+flags any app that has re-enabled itself and offers a one-click re-disable.
 
 ## Error handling
-- No `adb` binary, TV unreachable, or "unauthorized": a clear message with the fix.
-- A failed `pm` command is reported per package and does not stop the batch.
-- Connection drops mid-run: the log still holds everything done so far.
+- No `adb` binary, TV unreachable or "unauthorized": a banner with the exact fix.
+- A failed `pm` command is marked failed for that package; the batch continues.
+- Connection drops mid-run: the snapshot and the log hold everything done so far.
 
-## Safety rules
-- Packages rated `keep` can't be disabled without an explicit `--force`.
-- Core packages (launcher, settings, system UI, input method, `gms`, `webview`)
-  are `keep` by default.
-- Every disable is logged before the next one runs.
+## User guidance in the page
+- Reboot the TV before judging any lag change.
+- Re-check after firmware updates, which can bring removed apps back.
+- Turn USB debugging off when finished (one forum report of USB ports misbehaving with it left on).
 
 ## Testing
-- Unit tests for the analyzer and for `actions` log/undo logic, using a fake `adb` runner
-  and fixtures from `scans/` (real output from this TV).
-- A live smoke test (`scan` only, read-only) run by hand against the TV.
+- Unit tests for the analyzer, backup/restore and actions logic using a fake adb runner and
+  fixtures from `scans/` (real output from this TV).
+- API tests with Flask's test client.
+- The page is checked by hand against the TV, starting with scan only.
 
 ## Open items
-- `apps.yaml` is not written yet. It will be drafted from the scan, and each entry
-  needs a sanity check before it is rated `safe`.
+- `apps.yaml` is not written yet. Each entry marked safe needs a sanity check on this TV.
+- Optional later: `pm compile -m everything` (storage check required), per-app RAM trend.
