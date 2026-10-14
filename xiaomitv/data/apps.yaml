@@ -1,0 +1,171 @@
+# Knowledge base: package -> rating (safe | tradeoff | keep) and why.
+# Sources: 4pda "Xiaomi MI TV A2" thread (shtopor-89, meth_lab), Habr Mi TV write-up,
+# checked against a scan of MiTV-MOOR2. Packages not listed are treated as "keep".
+
+# ---- safe: telemetry, promo, setup leftovers ----
+com.miui.tv.analytics:
+  rating: safe
+  reason: Xiaomi analytics service; only collects usage data.
+com.xiaomi.statistic:
+  rating: safe
+  reason: Xiaomi statistics collector.
+com.mitv.tvhome.michannel:
+  rating: safe
+  reason: PatchWall channel recommendations; useless when PatchWall is unused.
+com.mitv.tvhome.mitvplus:
+  rating: safe
+  reason: Xiaomi TV+ recommendation app; only foreign channels.
+com.xiaomi.floatingframe:
+  rating: safe
+  reason: Store demo ("exhibition") mode.
+com.google.android.onetimeinitializer:
+  rating: safe
+  reason: Only runs during first-time setup.
+com.mstar.android.tv.disclaimercustomization:
+  rating: safe
+  reason: Vendor disclaimer text, only used in demo mode.
+com.google.android.play.games:
+  rating: safe
+  reason: Play Games; can be installed from the store if ever needed.
+com.google.android.videos:
+  rating: safe
+  reason: Google Play Movies; can be reinstalled from the store.
+com.google.android.youtube.tvmusic:
+  rating: safe
+  reason: Just a shortcut that opens YouTube on its Music tab.
+com.mitv.tvhome.atv:
+  rating: safe
+  needs_other_launcher: true
+  reason: PatchWall launcher with ads and recommendations; slows the TV down.
+com.xiaomi.mitv.updateservice:
+  rating: safe
+  reason: Background update service for the PatchWall launcher.
+
+# ---- tradeoff: works, but something stops working ----
+com.mediatek.tv.service:
+  rating: tradeoff
+  reason: Handles TV self-diagnosis and the sleep timer.
+  tradeoff: Disables the 5 AM self-test that wakes the TV, but also the sleep timer and other TV services.
+com.google.android.tv.remote.service:
+  rating: tradeoff
+  reason: Lets a phone act as the remote.
+  tradeoff: The phone remote app and pairing new Bluetooth devices stop working.
+com.mitv.milinkservice:
+  rating: tradeoff
+  reason: UPnP casting from Xiaomi phones.
+  tradeoff: Casting audio/video from Xiaomi apps stops working.
+com.xiaomi.mitv.smartshare:
+  rating: tradeoff
+  reason: Miracast screen mirroring.
+  tradeoff: Mirroring a phone screen to the TV stops working.
+com.mitv.dream:
+  rating: tradeoff
+  reason: Screensaver showing movie posters.
+  tradeoff: That screensaver is gone.
+com.google.android.tts:
+  rating: tradeoff
+  reason: Google Speech Services; reportedly not needed for search results.
+  tradeoff: Text-to-speech in some apps and accessibility may stop.
+com.netflix.ninja:
+  rating: tradeoff
+  button_bound: true
+  reason: Netflix; the remote has a Netflix button.
+  tradeoff: Netflix is gone. Disable only (do not uninstall) if the remote button is remapped.
+com.amazon.amazonvideo.livingroom:
+  rating: tradeoff
+  button_bound: true
+  reason: Prime Video; the remote has a Prime Video button.
+  tradeoff: Prime Video is gone. Disable only (do not uninstall) if the remote button is remapped.
+ru.mts.mtstv:
+  rating: tradeoff
+  button_bound: true
+  reason: KION streaming app tied to a remote button.
+  tradeoff: KION is gone; its remote button stops working.
+tv.more.play:
+  rating: tradeoff
+  button_bound: true
+  reason: Okko streaming app tied to a remote button.
+  tradeoff: Okko is gone; its remote button stops working.
+ru.rt.video.app.tv:
+  rating: tradeoff
+  button_bound: true
+  reason: Wink streaming app tied to a remote button.
+  tradeoff: Wink is gone; its remote button stops working.
+ru.rutube.app:
+  rating: tradeoff
+  button_bound: true
+  reason: Rutube app.
+  tradeoff: Rutube is gone.
+com.vk.tv:
+  rating: tradeoff
+  button_bound: true
+  reason: VK Video app.
+  tradeoff: VK Video is gone.
+
+# ---- keep: breaks the TV if disabled ----
+com.google.android.katniss:
+  rating: keep
+  reason: Voice search; disabling breaks the remote's microphone button.
+com.google.android.apps.tv.launcherx:
+  rating: keep
+  reason: Google TV home screen.
+com.google.android.tvlauncher:
+  rating: keep
+  reason: Android TV Home launcher.
+com.mitv.livetv:
+  rating: keep
+  reason: Live TV; also manages the HDMI inputs.
+com.mitv.livetv.ci_mediatek:
+  rating: keep
+  reason: Live TV CI module support.
+com.mitv.livetv.ci.mediatek:
+  rating: keep
+  reason: Live TV CI module support.
+com.mediatek.wwtv.tvcenter:
+  rating: keep
+  reason: Live TV; also manages the HDMI inputs.
+com.mediatek.wwtv.setupwizard:
+  rating: keep
+  reason: Live TV channel search and setup.
+com.xiaomi.android.tvsetup.partnercustomizer:
+  rating: keep
+  reason: Remote streaming buttons, region and inputs tile.
+com.xm.webcontent:
+  rating: keep
+  reason: Helper for screen casting and YouTube.
+com.mitv.overseaservice:
+  rating: keep
+  reason: Controls the status LED under the power button.
+com.mitv.videoplayer:
+  rating: keep
+  reason: Built-in video player.
+com.xiaomi.mimusic2:
+  rating: keep
+  reason: Built-in music player.
+com.mitv.gallery:
+  rating: keep
+  reason: Built-in gallery.
+com.xiaomo.tv.milegal:
+  rating: keep
+  reason: Factory menu and license text.
+com.google.android.gms:
+  rating: keep
+  reason: Google Play Services.
+com.google.android.webview:
+  rating: keep
+  reason: System WebView.
+com.google.android.inputmethod.latin:
+  rating: keep
+  reason: On-screen keyboard.
+com.android.tv.settings:
+  rating: keep
+  reason: System settings.
+com.xiaomi.gtv.settings:
+  rating: keep
+  reason: Xiaomi settings additions.
+com.android.systemui:
+  rating: keep
+  reason: System UI.
+com.mediatek.tvinput:
+  rating: keep
+  reason: TV input framework.
