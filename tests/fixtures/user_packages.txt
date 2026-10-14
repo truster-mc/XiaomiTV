@@ -1,0 +1,3 @@
+package:org.videolan.vlc
+package:com.kinopub
+package:org.jellyfin.androidtv
