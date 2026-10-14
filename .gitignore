@@ -1,1 +1,7 @@
 scans/
+backups/
+changes.log
+.venv/
+__pycache__/
+.pytest_cache/
+.superpowers/
