@@ -132,3 +132,8 @@ def test_tcl_bi_is_a_selectable_tradeoff_that_is_never_preticked(tcl_scan):
     assert "not tested" in r.tradeoff.lower()
     auto = {p for s in tcl_recipe().steps if not s.manual for p in s.packages}
     assert "com.tcl.bi" not in auto
+
+
+def test_tcl_recipe_says_guard_was_already_disabled_on_the_tested_tv():
+    text = " ".join(s.notes for s in tcl_recipe().steps) + " " + " ".join(tcl_recipe().tried_and_failed)
+    assert "com.tcl.guard was already disabled" in text

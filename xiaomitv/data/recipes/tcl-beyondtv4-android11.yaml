@@ -89,7 +89,8 @@ steps:
       remote key presses, app installs and removals, and device ids such as MAC and Android ID), so it
       is the best candidate to disable. It is selectable in the app list as a trade-off. com.tcl.guard (Safety Guard) is a memory killer, junk
       cleaner and permission shield that also reports app package names and kill events to TCL; it is
-      not ticked because its permission shield was not tested. com.tcl.xian.StartandroidService is the
+      not ticked because its permission shield was not tested. On the tested TV it was already
+      disabled when the recipe was first scanned, so its effect there was never observed. com.tcl.xian.StartandroidService is the
       TV's activation and login client for TCL's cloud, other TCL services wait for its login broadcast,
       so leave it. It also accepts any TLS certificate and exports its token database to every app. Not
       decompiled: versionUpdateApp (system updates) and overseasappshow.
@@ -112,7 +113,9 @@ tried_and_failed:
   - >-
     The decompiled findings come from reading jadx output, not from watching the TV's traffic, so "logs"
     and "reports" here mean the code is built to do it, not that traffic was seen. com.tcl.bi's upload hosts are not readable in the code.
-    Disabling com.tcl.bi and com.tcl.guard was not tested on the TV.
+    Disabling com.tcl.bi was done on the tested TV but only checked for a running process and the
+    foreground app, not for HDMI, power button or remote. com.tcl.guard was already disabled on that TV
+    before any change was made, so nothing is known about what disabling it changes.
   - >-
     Not tested: whether the remote's voice button works with micmanager and the Assistant disabled.
 undo:
