@@ -282,6 +282,9 @@ com.tcl.bi:
   rating: tradeoff
   reason: TCL usage analytics; decompiled. Logs the foreground app, a list of remote key presses, app installs and removals, and device ids (MAC, Android ID). Starts at boot.
   tradeoff: TCL loses its usage statistics. Nothing visible should change, but disabling it was not tested on the TV.
+com.tcl.guard:
+  rating: keep
+  reason: TCL Safety Guard (decompiled); memory killer, junk cleaner and permission shield that also reports app package names and kill events to TCL. It is a persistent system app, and on the tested TV it kept running after a reboot even while disabled, so disabling it does not stop it. Its permission shield was not tested.
 com.tcl.suspension:
   rating: keep
   reason: Runs the remote's Inputs/Source menu. Disabling it removes HDMI switching.

@@ -142,3 +142,10 @@ def test_tcl_recipe_says_guard_was_already_disabled_on_the_tested_tv():
 def test_tcl_recipe_says_disabling_guard_does_not_stop_its_process():
     text = " ".join(s.notes for s in tcl_recipe().steps) + " " + " ".join(tcl_recipe().tried_and_failed)
     assert "does not stop it" in text and "persistent" in text
+
+
+def test_tcl_guard_is_locked_with_the_reason_disabling_does_not_help(tcl_scan):
+    assert KB["com.tcl.guard"].rating == "keep"
+    reason = KB["com.tcl.guard"].reason.lower()
+    assert "persistent" in reason and "does not stop it" in reason
+    assert not rows(tcl_scan)["com.tcl.guard"].selectable
