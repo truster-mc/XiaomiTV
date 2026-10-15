@@ -137,3 +137,8 @@ def test_tcl_bi_is_a_selectable_tradeoff_that_is_never_preticked(tcl_scan):
 def test_tcl_recipe_says_guard_was_already_disabled_on_the_tested_tv():
     text = " ".join(s.notes for s in tcl_recipe().steps) + " " + " ".join(tcl_recipe().tried_and_failed)
     assert "com.tcl.guard was already disabled" in text
+
+
+def test_tcl_recipe_says_disabling_guard_does_not_stop_its_process():
+    text = " ".join(s.notes for s in tcl_recipe().steps) + " " + " ".join(tcl_recipe().tried_and_failed)
+    assert "does not stop it" in text and "persistent" in text
