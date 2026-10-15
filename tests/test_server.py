@@ -240,4 +240,4 @@ def test_recipe_detail(client):
 
 def test_recipe_filter_options_list_known_models_and_versions(client):
     opts = client.get("/api/recipes").json["filters"]
-    assert opts == {"models": ["BeyondTV4", "MiTV-MOOR2"], "android": ["11"]}
+    assert opts == {"models": ["43P635", "BeyondTV4", "MiTV-MOOR2"], "android": ["11"]}

@@ -80,3 +80,8 @@ def test_tcl_recipe_matches_the_codename_and_ticks_expected_apps(tcl_scan):
 def test_moor2_recipe_does_not_match_the_tcl_tv():
     assert [r.id for r in filter_recipes(load_recipes(), "BeyondTV4")] == ["tcl-beyondtv4-android11"]
     assert "tcl-beyondtv4-android11" not in [r.id for r in filter_recipes(load_recipes(), "MiTV-MOOR2")]
+
+
+def test_tcl_recipe_is_also_found_by_the_marketing_model():
+    assert [r.id for r in filter_recipes(load_recipes(), "43P635")] == ["tcl-beyondtv4-android11"]
+    assert [r.id for r in filter_recipes(load_recipes(), "43p635", "11")] == ["tcl-beyondtv4-android11"]

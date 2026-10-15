@@ -1,10 +1,10 @@
 id: tcl-beyondtv4-android11
-title: TCL Google TV "BeyondTV4" (Realtek RTD2851M platform), Android 11
-models: [BeyondTV4]
+title: TCL 43P635 Google TV (codename BeyondTV4), Android 11
+models: [BeyondTV4, 43P635]
 android: ["11"]
 summary: >-
   Disable Google extras and the TCL apps that owners of this family report removing without
-  problems. Built from 4pda TCL thread posts (a thread for the TCL P725 and related models, which may not be this exact model) and a TCL "never disable" list; not yet measured on the
+  problems. Built from 4pda TCL thread posts (a thread for the TCL P725, P638, C635 and related models; there is no thread for the P635 itself) and a TCL "never disable" list; not yet measured on the
   TCL TV, so test each step. Free RAM before: 403 MB of 2 GB with 600 MB of swap in use.
 result: {}
 steps:
