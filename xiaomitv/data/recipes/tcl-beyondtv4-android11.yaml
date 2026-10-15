@@ -65,15 +65,19 @@ steps:
       - com.tcl.partnercustomizer
       - com.tcl.partnercustomizer.resource
       - com.amazon.amazonvideo.livingroom
-  - title: "4. Assistant and accessibility (trade-offs)"
+  - title: "4. Assistant, accessibility and screensaver (trade-offs)"
     notes: >-
       Disabling the Google Assistant makes the remote's microphone button and voice search stop
       working. Only do this if nobody uses voice. TalkBack is the screen reader and TTS is Google's
-      speech service. These three freed little on their own.
+      speech service. These three freed little on their own. Ambient Mode (dreamx) is Google's
+      screensaver provider and held about 25 to 50 MB; with it off the TV has no screensaver (the basic
+      one is already off in step 1) and stays on the home screen until it sleeps. Disabled on a second
+      TV with no problem seen, but sleep afterwards was not tested.
     packages:
       - com.google.android.katniss
       - com.google.android.marvin.talkback
       - com.google.android.tts
+      - com.google.android.apps.tv.dreamx
   - title: "5. By hand: Play Store auto-update and the launcher"
     notes: >-
       Play Store: open it on the TV, then Settings, Auto-update apps, Don't auto-update apps. On the

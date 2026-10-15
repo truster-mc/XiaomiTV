@@ -149,3 +149,11 @@ def test_tcl_guard_is_locked_with_the_reason_disabling_does_not_help(tcl_scan):
     reason = KB["com.tcl.guard"].reason.lower()
     assert "persistent" in reason and "does not stop it" in reason
     assert not rows(tcl_scan)["com.tcl.guard"].selectable
+
+
+def test_ambient_mode_is_a_tradeoff_in_the_assistant_step(tcl_scan):
+    r = rows(tcl_scan)["com.google.android.apps.tv.dreamx"]
+    assert r.rating == "tradeoff" and r.selectable and not r.preticked
+    assert "screensaver" in KB["com.google.android.apps.tv.dreamx"].tradeoff.lower()
+    assert "com.google.android.apps.tv.dreamx" in tcl_recipe().steps[3].packages
+    assert "com.google.android.apps.tv.dreamx" not in tcl_recipe().steps[0].packages

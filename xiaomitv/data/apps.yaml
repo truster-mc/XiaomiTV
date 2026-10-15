@@ -78,6 +78,10 @@ com.google.android.tts:
   rating: tradeoff
   reason: Google Speech Services; reportedly not needed for search results.
   tradeoff: Text-to-speech in some apps and accessibility may stop.
+com.google.android.apps.tv.dreamx:
+  rating: tradeoff
+  reason: Google TV Ambient Mode, the screensaver provider; about 25 to 50 MB while resident. Disabled on one TCL 43P635-family TV with no problem seen.
+  tradeoff: The screensaver is gone; the TV stays on the home screen until it sleeps. Sleep after disabling was not tested.
 com.netflix.ninja:
   rating: tradeoff
   button_bound: true
