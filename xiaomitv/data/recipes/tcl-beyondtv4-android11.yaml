@@ -34,7 +34,9 @@ steps:
     notes: >-
       From one owner's list of apps the TV works without, from the 50P725 guide, and from other posts.
       What each app does is mostly inferred from its name, and micmanager may affect the remote's voice
-      button (not tested). Apply in two batches and test the HDMI inputs, power button, remote, YouTube
+      button (not tested). One was checked by decompiling: t_solo is the Bluetooth "Listen Alone"
+      feature (private listening on Bluetooth headphones), not telemetry, so disabling it only matters
+      if you use that. Apply in two batches and test the HDMI inputs, power button, remote, YouTube
       and sound after each. All 15 applied here without a problem.
     packages:
       - com.tcl.dashboard
@@ -82,7 +84,15 @@ steps:
       needs the --force launch flag). The Google launcher plus its core services used about 270 to 330 MB.
       Home then resolves straight to Projectivy. Reboot and test everything again. The four undocumented
       background services (com.tcl.bi, com.tcl.versionUpdateApp, com.tcl.xian.StartandroidService,
-      com.tcl.overseasappshow, about 55 MB together) are left alone because no source says what they do.
+      com.tcl.overseasappshow, about 55 MB together) are left alone. Decompiling two of them (bi and xian)
+      and com.tcl.guard showed: com.tcl.bi is TCL's usage analytics (it logs the foreground app, a list of
+      remote key presses, app installs and removals, and device ids such as MAC and Android ID), so it
+      is the best candidate to disable by hand. com.tcl.guard (Safety Guard) is a memory killer, junk
+      cleaner and permission shield that also reports app package names and kill events to TCL; it is
+      not ticked because its permission shield was not tested. com.tcl.xian.StartandroidService is the
+      TV's activation and login client for TCL's cloud, other TCL services wait for its login broadcast,
+      so leave it. It also accepts any TLS certificate and exports its token database to every app. Not
+      decompiled: versionUpdateApp (system updates) and overseasappshow.
     manual: true
     packages:
       - com.google.android.apps.tv.launcherx
@@ -99,6 +109,10 @@ tried_and_failed:
     A sideloaded Projectivy v4.72 build used 12 to 59 percent of a core while idle and grew from about 200
     to 238 MB RSS in seven minutes. It is not clear if that is the build or its wallpaper and animation
     settings. An official build is recommended, and check its wallpaper and animated-icon settings.
+  - >-
+    The decompiled findings come from reading jadx output, not from watching the TV's traffic, so "logs"
+    and "reports" here mean the code is built to do it, not that traffic was seen. com.tcl.bi's upload hosts are not readable in the code.
+    Disabling com.tcl.bi and com.tcl.guard was not tested on the TV.
   - >-
     Not tested: whether the remote's voice button works with micmanager and the Assistant disabled.
 undo:

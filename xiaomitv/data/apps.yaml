@@ -226,8 +226,8 @@ com.tcl.micmanager:
   tradeoff: Unknown; check the remote's voice button and any voice features.
 com.tcl.t_solo:
   rating: tradeoff
-  reason: Name suggests a TCL app; its function is not documented. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
-  tradeoff: Unknown; test the TV after disabling.
+  reason: TCL Bluetooth "Listen Alone" (package com.tcl.bluetoothlistenalone); decompiled. Reported removable by owners of the TCL P725 family (4pda).
+  tradeoff: Private listening on Bluetooth headphones through the TV stops working.
 com.tcl.useragreement:
   rating: tradeoff
   reason: TCL user agreement screens (setup). Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.

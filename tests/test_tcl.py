@@ -116,3 +116,11 @@ def test_tcl_recipe_records_what_to_test_and_the_lessons():
     text = " ".join(tcl_recipe().tried_and_failed)
     assert "load average" in text.lower()
     assert "HDMI" in " ".join(s.notes for s in tcl_recipe().steps)
+
+
+def test_tcl_recipe_records_the_decompiled_findings():
+    step2, step5 = tcl_recipe().steps[1].notes, tcl_recipe().steps[-1].notes
+    assert "Listen Alone" in step2 and "Bluetooth" in step2
+    assert "com.tcl.bi is TCL's usage analytics" in step5
+    assert "accepts any TLS certificate" in step5
+    assert "bluetooth" in KB["com.tcl.t_solo"].tradeoff.lower()
