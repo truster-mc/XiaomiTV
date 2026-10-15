@@ -72,7 +72,7 @@ def test_tcl_recipe_matches_the_codename_and_ticks_expected_apps(tcl_scan):
     r = rows(tcl_scan)
     ticked = {p for s in recipes[0].steps if not s.manual for p in s.packages
               if p in r and r[p].enabled and r[p].selectable}
-    assert {"com.tcl.gallery", "com.google.android.partnersetup", "com.netflix.ninja"} <= ticked
+    assert {"com.tcl.gallery", "com.google.android.partnersetup", "com.google.android.katniss"} <= ticked
     assert not ({"com.tcl.tv", "com.tcl.suspension", "com.google.android.gms"} & ticked)
     assert "com.tcl.messagebox" not in ticked          # already disabled on this TV
 
@@ -85,3 +85,34 @@ def test_moor2_recipe_does_not_match_the_tcl_tv():
 def test_tcl_recipe_is_also_found_by_the_marketing_model():
     assert [r.id for r in filter_recipes(load_recipes(), "43P635")] == ["tcl-beyondtv4-android11"]
     assert [r.id for r in filter_recipes(load_recipes(), "43p635", "11")] == ["tcl-beyondtv4-android11"]
+
+
+def tcl_recipe():
+    return next(r for r in load_recipes() if r.id == "tcl-beyondtv4-android11")
+
+
+def test_tcl_recipe_has_a_measured_result():
+    r = tcl_recipe().result
+    assert 0 < r["before_mb"] < r["after_mb"]
+    assert "reboot" in r["note"].lower() and "swap" in r["note"].lower()
+
+
+def test_netflix_is_not_ticked_by_default_because_of_its_remote_button():
+    auto = {p for s in tcl_recipe().steps if not s.manual for p in s.packages}
+    assert "com.netflix.ninja" not in auto
+    text = " ".join(s.notes for s in tcl_recipe().steps)
+    assert "Netflix" in text and "button" in text
+
+
+def test_tcl_recipe_orders_the_steps_safest_first_and_ends_with_the_manual_launcher_step():
+    steps = tcl_recipe().steps
+    assert [s.manual for s in steps] == [False, False, False, False, True]
+    assert "com.google.android.katniss" in steps[3].packages     # assistant and accessibility step
+    assert "official" in steps[-1].notes.lower()
+    assert "setupwraith" in steps[-1].notes
+
+
+def test_tcl_recipe_records_what_to_test_and_the_lessons():
+    text = " ".join(tcl_recipe().tried_and_failed)
+    assert "load average" in text.lower()
+    assert "HDMI" in " ".join(s.notes for s in tcl_recipe().steps)

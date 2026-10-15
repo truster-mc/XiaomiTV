@@ -57,7 +57,7 @@ your TV after applying it (reboot, then try the HDMI inputs, remote buttons and 
 | Recipe | TV | Android | Result |
 |---|---|---|---|
 | `mitv-moor2-android11` | Xiaomi MiTV-MOOR2 (MI TV A2 family), Google TV | 11 | free RAM 822 MB to about 1,016 MB |
-| `tcl-beyondtv4-android11` | TCL 43P635 Google TV (codename `BeyondTV4`) | 11 | not measured yet; built from forum reports |
+| `tcl-beyondtv4-android11` | TCL 43P635 Google TV (codename `BeyondTV4`) | 11 | free RAM 403 MB to about 480 MB, swap use about 600 MB to about 54 MB |
 
 ### Adding a recipe
 

@@ -3,13 +3,23 @@ title: TCL 43P635 Google TV (codename BeyondTV4), Android 11
 models: [BeyondTV4, 43P635]
 android: ["11"]
 summary: >-
-  Disable Google extras and the TCL apps that owners of this family report removing without
-  problems. Built from 4pda TCL thread posts (a thread for the TCL P725, P638, C635 and related models; there is no thread for the P635 itself) and a TCL "never disable" list; not yet measured on the
-  TCL TV, so test each step. Free RAM before: 403 MB of 2 GB with 600 MB of swap in use.
-result: {}
+  Five steps, safest first: Google extras, TCL apps that owners report removing, the remote-button
+  partner apps, the Assistant and accessibility apps, then a manual launcher swap. Tested on one
+  TCL 43P635 with 2 GB of RAM: free memory went from 403 MB to about 480 MB, and swap use fell from
+  about 600 MB to about 54 MB. Test the HDMI inputs, power button and remote after every step.
+result:
+  before_mb: 403
+  after_mb: 480
+  note: >-
+    Kernel MemAvailable 7 minutes after a reboot with nothing opened, against 403 MB at the first scan,
+    which was taken during a Play Store update and compile burst. Swap in use fell from about 600 MB
+    to about 54 MB. Measured on one TV, so treat the numbers as a guide.
 steps:
   - title: "1. Google extras (safe)"
-    notes: Setup leftovers, error reports, calendar sync, games, movies, printing and screensavers.
+    notes: >-
+      Setup leftovers, error reports, calendar sync, games, movies, printing and screensavers. They
+      free almost no memory but are safe to remove. After this step reboot and test the HDMI inputs
+      (Source button), the power button, the remote, sound, YouTube and Netflix.
     packages:
       - com.google.android.partnersetup
       - com.google.android.onetimeinitializer
@@ -23,8 +33,9 @@ steps:
   - title: "2. TCL apps owners report removing (trade-offs)"
     notes: >-
       From one owner's list of apps the TV works without, from the 50P725 guide, and from other posts.
-      What each app does is mostly inferred from its name. Do these in small batches and test the
-      remote, HDMI inputs, power button, Netflix and YouTube after each.
+      What each app does is mostly inferred from its name, and micmanager may affect the remote's voice
+      button (not tested). Apply in two batches and test the HDMI inputs, power button, remote, YouTube
+      and sound after each. All 15 applied here without a problem.
     packages:
       - com.tcl.dashboard
       - com.tcl.esticker
@@ -43,29 +54,57 @@ steps:
       - com.tcl.smartalexa
   - title: "3. Remote-button partner apps (trade-offs)"
     notes: >-
-      TCL Channel, Okko and Kinopoisk buttons and Netflix and Prime Video. Disable, do not uninstall:
-      the buttons can then be remapped.
+      TCL's partner customizer drives the remote's TCL Channel, Okko and Kinopoisk buttons, and Prime
+      Video has its own button. Disable, do not uninstall, so the buttons can be remapped. Netflix is not
+      in this list on purpose: disabling it freed 100 to 160 MB while it was open, but the remote's Netflix
+      button stops working, and the owner turned it back on. Add com.netflix.ninja by hand if you never
+      use that button.
     packages:
       - com.tcl.partnercustomizer
       - com.tcl.partnercustomizer.resource
-      - com.netflix.ninja
       - com.amazon.amazonvideo.livingroom
-  - title: "4. By hand"
+  - title: "4. Assistant and accessibility (trade-offs)"
     notes: >-
-      Turn off auto-update in the Play Store settings: on the scanned TV the Play Store background
-      updater used about 257 MB and a compile job another 225 MB, with a load average of 32. The
-      background services com.tcl.bi, com.tcl.versionUpdateApp, com.tcl.xian.StartandroidService and
-      com.tcl.overseasappshow have no documentation, so they are left alone. Replacing the Google
-      launcher works as on the other recipe (install an official launcher first; com.google.android.tungsten.setupwraith
-      must be disabled too).
+      Disabling the Google Assistant makes the remote's microphone button and voice search stop
+      working. Only do this if nobody uses voice. TalkBack is the screen reader and TTS is Google's
+      speech service. These three freed little on their own.
+    packages:
+      - com.google.android.katniss
+      - com.google.android.marvin.talkback
+      - com.google.android.tts
+  - title: "5. By hand: Play Store auto-update and the launcher"
+    notes: >-
+      Play Store: open it on the TV, then Settings, Auto-update apps, Don't auto-update apps. On the
+      first scan its background updater held 257 MB while a compile job used 225 MB. Launcher: install an
+      official Projectivy Launcher from the Play Store or the developer's GitHub release, not a modified
+      build, and enable its accessibility service. Then back up and disable
+      com.google.android.apps.tv.launcherx together with com.google.android.tungsten.setupwraith (the tool
+      needs the --force launch flag). The Google launcher plus its core services used about 270 to 330 MB.
+      Home then resolves straight to Projectivy. Reboot and test everything again. The four undocumented
+      background services (com.tcl.bi, com.tcl.versionUpdateApp, com.tcl.xian.StartandroidService,
+      com.tcl.overseasappshow, about 55 MB together) are left alone because no source says what they do.
     manual: true
     packages:
       - com.google.android.apps.tv.launcherx
+      - com.google.android.tungsten.setupwraith
 tried_and_failed:
-  - Not yet measured on the TCL TV. The first TV taught us to test HDMI inputs after every change.
+  - >-
+    The load average is meaningless on this TV: it read about 26 from the first minute after boot to seven
+    minutes later while the CPUs were 85 to 93 percent idle. Do not judge the TV by it. Judge by free
+    memory, swap use and how it feels.
+  - >-
+    The first scan was taken during a Play Store update and compile burst (free memory 403 MB, swap about
+    600 MB used). Measure after a reboot and wait five minutes with nothing open, and scan again.
+  - >-
+    A sideloaded Projectivy v4.72 build used 12 to 59 percent of a core while idle and grew from about 200
+    to 238 MB RSS in seven minutes. It is not clear if that is the build or its wallpaper and animation
+    settings. An official build is recommended, and check its wallpaper and animated-icon settings.
+  - >-
+    Not tested: whether the remote's voice button works with micmanager and the Assistant disabled.
 undo:
   - "One app: adb shell pm enable --user 0 <package>"
-  - "Everything: use the Backups list in the page and press Restore."
+  - "Everything in a step: use the Backups list in the page (it only lists this TV's backups) and press Restore."
+  - "Google launcher: pm enable --user 0 com.google.android.apps.tv.launcherx and com.google.android.tungsten.setupwraith, then reboot."
 sources:
   - title: 4pda TCL thread, apps the TV works without (post 116371428)
     url: https://4pda.to/forum/index.php?showtopic=1024588&view=findpost&p=116371428
