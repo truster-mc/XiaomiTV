@@ -157,3 +157,10 @@ def test_ambient_mode_is_a_tradeoff_in_the_assistant_step(tcl_scan):
     assert "screensaver" in KB["com.google.android.apps.tv.dreamx"].tradeoff.lower()
     assert "com.google.android.apps.tv.dreamx" in tcl_recipe().steps[3].packages
     assert "com.google.android.apps.tv.dreamx" not in tcl_recipe().steps[0].packages
+
+
+def test_smartalexa_is_recorded_as_a_persistent_app_that_keeps_running():
+    reason = KB["com.tcl.smartalexa"].reason.lower()
+    assert "persistent" in reason and "frees no memory" in reason
+    text = " ".join(tcl_recipe().tried_and_failed)
+    assert "com.tcl.smartalexa" in text and "keeps running" in text

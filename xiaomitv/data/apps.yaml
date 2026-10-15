@@ -246,8 +246,8 @@ com.tcl.messagebox:
   tradeoff: TCL on-screen messages stop.
 com.tcl.smartalexa:
   rating: tradeoff
-  reason: TCL Alexa integration. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
-  tradeoff: Alexa on the TV stops working.
+  reason: TCL Alexa integration. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name. It is a persistent system app. On one TV it kept running (about 84 to 93 MB resident) after being disabled and after reboots, and force-stop and suspend did not stop it, so disabling it frees no memory.
+  tradeoff: Alexa on the TV stops working. The process keeps running anyway, so there is no memory gain.
 com.tcl.esticker:
   rating: tradeoff
   reason: TCL e-sticker (electronic label) app. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.

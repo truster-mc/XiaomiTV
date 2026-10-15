@@ -122,7 +122,13 @@ tried_and_failed:
     foreground app, not for HDMI, power button or remote. com.tcl.guard was already disabled on that TV
     before any change was made. After a reboot its package was still disabled but its process was running,
     started at boot because it is a persistent system app, so disabling it does not free its memory.
-    Stopping it would need root or a force-stop after every boot, and force-stop does not survive a reboot.
+    Stopping it would need root. On the same kind of app, com.tcl.smartalexa, am force-stop left the process
+    running with the same pid, and suspending the package did not stop it either (shell cannot kill a
+    persistent system app). Force-stop was not tried on com.tcl.guard.
+  - >-
+    com.tcl.smartalexa (step 2) is a persistent system app like com.tcl.guard: its package stays disabled
+    but its process, about 84 to 93 MB resident, keeps running after every reboot, so ticking it only
+    removes the Alexa feature and frees no memory. Seen on one TV.
   - >-
     Not tested: whether the remote's voice button works with micmanager and the Assistant disabled.
 undo:
