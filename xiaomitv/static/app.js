@@ -146,13 +146,13 @@ async function loadBackups() {
     if (!backups.length) {
       const li = document.createElement("li");
       li.className = "note";
-      li.textContent = "None yet.";
+      li.textContent = rows.length ? "No backups for this TV yet." : "Scan a TV to see its backups.";
       list.appendChild(li);
     }
     for (const b of backups) {
       const li = document.createElement("li");
       const label = document.createElement("span");
-      label.textContent = `${b.created.replace("T", " ")} - ${b.packages_disabled} apps were disabled`;
+      label.textContent = `${b.created.replace("T", " ")} - ${b.device || "TV"} - ${b.packages_disabled} apps were disabled`;
       const btn = document.createElement("button");
       btn.textContent = "Restore";
       btn.addEventListener("click", () => restore(b.id));

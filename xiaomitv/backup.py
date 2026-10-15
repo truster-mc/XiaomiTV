@@ -3,13 +3,17 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from xiaomitv.models import Package, Scan
+from xiaomitv.models import Package, Scan, device_id
 
 _ID_RE = re.compile(r"^\d{8}-\d{6}$")
 
 
 class BackupError(Exception):
     pass
+
+
+class BackupMismatch(BackupError):
+    """The backup belongs to a different TV than the one that is connected."""
 
 
 def create_snapshot(scan: Scan, tweak_states: dict[str, dict[str, str | None]],
@@ -21,6 +25,7 @@ def create_snapshot(scan: Scan, tweak_states: dict[str, dict[str, str | None]],
         "version": 1,
         "created": now.isoformat(timespec="seconds"),
         "device": scan.device,
+        "device_id": device_id(scan.device),
         "mem_available_kb": scan.mem_available_kb,
         "packages": {p.name: p.enabled for p in scan.packages},
         "tweaks": tweak_states,
@@ -58,7 +63,21 @@ def load_snapshot(directory: Path, snapshot_id: str) -> dict:
     return data
 
 
-def list_snapshots(directory: Path) -> list[dict]:
+def snapshot_matches(snapshot: dict, device: dict) -> bool:
+    """True if the snapshot was taken on this TV. Old snapshots (no device_id) match on
+    manufacturer, model and, when both have one, the device codename."""
+    if snapshot.get("device_id"):
+        return snapshot["device_id"] == device_id(device)
+    old = snapshot.get("device")
+    if not isinstance(old, dict) or not old.get("model"):
+        return False
+    if old.get("manufacturer", "") != device.get("manufacturer", "") or old["model"] != device.get("model"):
+        return False
+    codenames = (old.get("device"), device.get("device"))
+    return not all(codenames) or codenames[0] == codenames[1]
+
+
+def list_snapshots(directory: Path, device: dict | None = None) -> list[dict]:
     if not directory.is_dir():
         return []
     items = []
@@ -67,8 +86,11 @@ def list_snapshots(directory: Path) -> list[dict]:
             data = load_snapshot(directory, path.stem)
         except BackupError:
             continue
+        if device is not None and not snapshot_matches(data, device):
+            continue
         items.append({
             "id": path.stem,
+            "device": (data.get("device") or {}).get("model", ""),
             "created": data.get("created", ""),
             "packages_disabled": sum(1 for enabled in data["packages"].values() if not enabled),
         })

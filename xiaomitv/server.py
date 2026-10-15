@@ -11,8 +11,9 @@ from xiaomitv.actions import PACKAGE_RE, disable_packages, enable_packages
 from xiaomitv.adb import AdbError
 from xiaomitv.analyzer import analyze, load_knowledge
 from xiaomitv.recipes import filter_recipes, load_recipes
-from xiaomitv.backup import (BackupError, create_snapshot, list_snapshots,
-                             load_snapshot, packages_to_reenable)
+from xiaomitv.backup import (BackupError, BackupMismatch, create_snapshot, list_snapshots,
+                             load_snapshot, packages_to_reenable, snapshot_matches)
+from xiaomitv.models import device_id
 
 _HOST_RE = re.compile(r"^[A-Za-z0-9.\-]{1,253}$")
 
@@ -40,6 +41,10 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
     def backup_error(exc):
         return jsonify(error=str(exc)), 404
 
+    @app.errorhandler(BackupMismatch)
+    def backup_mismatch(exc):
+        return jsonify(error=str(exc)), 409
+
     def bad(message, status=400):
         return jsonify(error=message), status
 
@@ -49,11 +54,13 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
     def came_back(scan) -> list[str]:
         if not log_path.exists():
             return []
+        here = device_id(scan.device)
         last: dict[str, dict] = {}
         for line in log_path.read_text().splitlines():
             try:
                 entry = json.loads(line)
-                last[entry["package"]] = entry
+                if entry.get("device_id") == here:   # untagged (old) entries are ignored
+                    last[entry["package"]] = entry
             except (json.JSONDecodeError, KeyError, TypeError):
                 continue
         enabled = {p.name for p in scan.packages if p.enabled}
@@ -126,6 +133,7 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
             if rows[pkg].rating == "keep" and not force:
                 return bad(f"{pkg} is rated keep and is locked")
         with lock:
+            here = device_id(state["scan"].device)
             snapshot = create_snapshot(state["scan"], tweak_states(), backup_dir)
 
             def stream():
@@ -133,7 +141,7 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
                 with lock:
                     reported = set()
                     try:
-                        for result in disable_packages(adb, packages, log_path):
+                        for result in disable_packages(adb, packages, log_path, device_id=here):
                             reported.add(result.package)
                             yield json.dumps(dataclasses.asdict(result)) + "\n"
                     except Exception as exc:
@@ -154,15 +162,21 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
 
     @app.get("/api/backups")
     def backups():
-        return jsonify(backups=list_snapshots(backup_dir))
+        if state["scan"] is None:        # which TV is connected is only known after a scan
+            return jsonify(backups=[])
+        return jsonify(backups=list_snapshots(backup_dir, state["scan"].device))
 
     @app.post("/api/restore")
     def restore():
         snapshot = load_snapshot(backup_dir, (request.get_json(silent=True) or {}).get("id", ""))
         with lock:
             current = collector.collect(adb)
+            if not snapshot_matches(snapshot, current.device):
+                other = (snapshot.get("device") or {}).get("model", "unknown")
+                raise BackupMismatch(f"This backup is from another TV ({other}), not "
+                                     f"{current.device.get('model', 'this TV')}. Nothing was changed.")
             results = list(enable_packages(adb, packages_to_reenable(snapshot, current.packages),
-                                           log_path))
+                                           log_path, device_id=device_id(current.device)))
             reverted = []
             for tweak_id, saved in snapshot.get("tweaks", {}).items():
                 tweak = tweaks.TWEAKS.get(tweak_id)
@@ -183,12 +197,13 @@ def create_app(adb, backup_dir: Path, log_path: Path, knowledge=None,
         with lock:
             # the state to go back to: the newest snapshot taken while the tweak was off
             previous = {s.key: None for s in t.settings}
-            for info in list_snapshots(backup_dir):
+            now_scan = collector.collect(adb)
+            for info in list_snapshots(backup_dir, now_scan.device):
                 saved = load_snapshot(backup_dir, info["id"]).get("tweaks", {}).get(tweak_id)
                 if saved is not None and not tweaks.is_enabled(t, saved):
                     previous = saved
                     break
-            snapshot = create_snapshot(collector.collect(adb), tweak_states(), backup_dir)
+            snapshot = create_snapshot(now_scan, tweak_states(), backup_dir)
             if action == "enable":
                 tweaks.apply(adb, t)
             else:

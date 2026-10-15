@@ -16,6 +16,7 @@ PROPS = {
     "android": "ro.build.version.release",
     "sdk": "ro.build.version.sdk",
     "device": "ro.product.device",
+    "serial": "ro.serialno",
 }
 
 _PSS_LINE = re.compile(r"^\s*([\d,]+)K:\s+(\S+)")

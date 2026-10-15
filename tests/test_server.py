@@ -191,7 +191,7 @@ def test_stream_survives_unexpected_error_for_one_package(fake_adb, tmp_path):
 def test_stream_reports_remaining_packages_failed_if_stream_breaks(fake_adb, tmp_path, monkeypatch):
     import xiaomitv.server as server
 
-    def broken(adb, packages, log_path):
+    def broken(adb, packages, log_path, device_id=None):
         yield Result(packages[0], True, "ok")
         raise MemoryError("out of memory")
 

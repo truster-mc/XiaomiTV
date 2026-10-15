@@ -18,7 +18,7 @@ class Result:
 
 
 def _run(adb, packages: list[str], log_path: Path, action: str,
-         command: str, success: str) -> Iterator[Result]:
+         command: str, success: str, device_id: str | None = None) -> Iterator[Result]:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     for package in packages:
         if not PACKAGE_RE.match(package or ""):
@@ -33,21 +33,25 @@ def _run(adb, packages: list[str], log_path: Path, action: str,
             except Exception as exc:  # one odd failure must not drop the rest of the batch
                 result = Result(package, False, f"{type(exc).__name__}: {exc}")
         try:
+            entry = {"time": datetime.now().isoformat(timespec="seconds"),
+                     "action": action, "package": package,
+                     "ok": result.ok, "message": result.message}
+            if device_id:
+                entry["device_id"] = device_id
             with log_path.open("a") as log:
-                log.write(json.dumps({
-                    "time": datetime.now().isoformat(timespec="seconds"),
-                    "action": action, "package": package,
-                    "ok": result.ok, "message": result.message}) + "\n")
+                log.write(json.dumps(entry) + "\n")
         except OSError:
             pass  # the result still reaches the caller; the snapshot is the safety net
         yield result
 
 
-def disable_packages(adb, packages: list[str], log_path: Path) -> Iterator[Result]:
+def disable_packages(adb, packages: list[str], log_path: Path,
+                     device_id: str | None = None) -> Iterator[Result]:
     return _run(adb, packages, log_path, "disable",
-                "pm disable-user --user 0", "new state: disabled-user")
+                "pm disable-user --user 0", "new state: disabled-user", device_id)
 
 
-def enable_packages(adb, packages: list[str], log_path: Path) -> Iterator[Result]:
+def enable_packages(adb, packages: list[str], log_path: Path,
+                    device_id: str | None = None) -> Iterator[Result]:
     return _run(adb, packages, log_path, "enable",
-                "pm enable --user 0", "new state: enabled")
+                "pm enable --user 0", "new state: enabled", device_id)
