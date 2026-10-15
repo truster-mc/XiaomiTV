@@ -278,6 +278,10 @@ com.tcl.tv:
 com.tcl.tvinput:
   rating: keep
   reason: TCL HDMI and antenna input service.
+com.tcl.bi:
+  rating: tradeoff
+  reason: TCL usage analytics; decompiled. Logs the foreground app, a list of remote key presses, app installs and removals, and device ids (MAC, Android ID). Starts at boot.
+  tradeoff: TCL loses its usage statistics. Nothing visible should change, but disabling it was not tested on the TV.
 com.tcl.suspension:
   rating: keep
   reason: Runs the remote's Inputs/Source menu. Disabling it removes HDMI switching.

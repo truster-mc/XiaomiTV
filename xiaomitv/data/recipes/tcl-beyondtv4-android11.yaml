@@ -84,10 +84,10 @@ steps:
       needs the --force launch flag). The Google launcher plus its core services used about 270 to 330 MB.
       Home then resolves straight to Projectivy. Reboot and test everything again. The four undocumented
       background services (com.tcl.bi, com.tcl.versionUpdateApp, com.tcl.xian.StartandroidService,
-      com.tcl.overseasappshow, about 55 MB together) are left alone. Decompiling two of them (bi and xian)
+      com.tcl.overseasappshow, about 55 MB together) are not ticked. Decompiling two of them (bi and xian)
       and com.tcl.guard showed: com.tcl.bi is TCL's usage analytics (it logs the foreground app, a list of
       remote key presses, app installs and removals, and device ids such as MAC and Android ID), so it
-      is the best candidate to disable by hand. com.tcl.guard (Safety Guard) is a memory killer, junk
+      is the best candidate to disable. It is selectable in the app list as a trade-off. com.tcl.guard (Safety Guard) is a memory killer, junk
       cleaner and permission shield that also reports app package names and kill events to TCL; it is
       not ticked because its permission shield was not tested. com.tcl.xian.StartandroidService is the
       TV's activation and login client for TCL's cloud, other TCL services wait for its login broadcast,

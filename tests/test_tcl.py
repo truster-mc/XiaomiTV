@@ -17,7 +17,7 @@ REPORTED_REMOVABLE = [
     "com.tcl.videoplayer", "com.tcl.micmanager", "com.tcl.t_solo", "com.tcl.useragreement",
     "com.tcl.usercenter",
 ]
-UNDOCUMENTED = ["com.tcl.bi", "com.tcl.versionUpdateApp", "com.tcl.xian.StartandroidService",
+UNDOCUMENTED = ["com.tcl.versionUpdateApp", "com.tcl.xian.StartandroidService",
                 "com.tcl.overseasappshow"]
 
 
@@ -124,3 +124,11 @@ def test_tcl_recipe_records_the_decompiled_findings():
     assert "com.tcl.bi is TCL's usage analytics" in step5
     assert "accepts any TLS certificate" in step5
     assert "bluetooth" in KB["com.tcl.t_solo"].tradeoff.lower()
+
+
+def test_tcl_bi_is_a_selectable_tradeoff_that_is_never_preticked(tcl_scan):
+    r = rows(tcl_scan)["com.tcl.bi"]
+    assert r.rating == "tradeoff" and r.selectable and not r.preticked
+    assert "not tested" in r.tradeoff.lower()
+    auto = {p for s in tcl_recipe().steps if not s.manual for p in s.packages}
+    assert "com.tcl.bi" not in auto
