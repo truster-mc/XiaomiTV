@@ -57,7 +57,7 @@ your TV after applying it (reboot, then try the HDMI inputs, remote buttons and 
 | Recipe | TV | Android | Result |
 |---|---|---|---|
 | `mitv-moor2-android11` | Xiaomi MiTV-MOOR2 (MI TV A2 family), Google TV | 11 | free RAM 822 MB to about 1,016 MB |
-| `tcl-beyondtv4-android11` | TCL Google TV `BeyondTV4` (P725 family) | 11 | not measured yet; built from forum reports |
+| `tcl-beyondtv4-android11` | TCL Google TV `BeyondTV4` (Realtek RTD2851M; exact marketing model unconfirmed) | 11 | not measured yet; built from forum reports |
 
 ### Adding a recipe
 
