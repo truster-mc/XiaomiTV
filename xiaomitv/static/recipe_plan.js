@@ -22,4 +22,16 @@ function planTick(recipe, rows, step) {
   return plan;
 }
 
-if (typeof module !== "undefined") module.exports = { planTick };
+// Choose the recipe filters for a scanned TV. Some brands report a generic model name
+// ("Smart TV"), so fall back to the device codename (ro.product.device) when it has a recipe.
+function pickFilters(device, filters) {
+  const find = (list, value) =>
+    value ? list.find((v) => v.toLowerCase() === String(value).toLowerCase()) : undefined;
+  const none = { model: "", android: "" };
+  if (!device) return none;
+  const model = find(filters.models, device.model) || find(filters.models, device.device) || "";
+  const android = find(filters.android, device.android) || "";
+  return { model, android };
+}
+
+if (typeof module !== "undefined") module.exports = { planTick, pickFilters };

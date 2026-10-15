@@ -1,0 +1,10 @@
+package:com.cybercat.adbappcontrol.tv
+package:com.lonelycatgames.Xplore
+package:net.filmix.filmix
+package:com.tcl.browser
+package:es.ottplayer.tv
+package:com.hbo.hbonow
+package:com.teamsmart.videomanager.tv
+package:org.videolan.vlc
+package:com.kinopub
+package:de.benzac.msx

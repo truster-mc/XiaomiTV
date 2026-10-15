@@ -58,3 +58,18 @@ def client(fake_adb, tmp_path):
     from xiaomitv.server import create_app
     app = create_app(fake_adb, tmp_path / "backups", tmp_path / "changes.log")
     return app.test_client()
+
+
+@pytest.fixture
+def tcl_scan():
+    """A Scan for the TCL BeyondTV4 (package lists captured from the real TV; no memory data)."""
+    def fx(name):
+        return (FIX / "tcl" / name).read_text()
+
+    pkgs = collector.parse_packages(fx("system_packages.txt"), fx("user_packages.txt"),
+                                    fx("disabled_packages.txt"))
+    return collector.Scan(
+        device={"model": "Smart TV", "device": "BeyondTV4", "manufacturer": "TCL", "android": "11"},
+        mem_total_kb=2097152, mem_available_kb=403168, data_total_kb=10653956,
+        data_free_kb=6970376, packages=pkgs, pss_kb={},
+        launcher="com.google.android.apps.tv.launcherx")

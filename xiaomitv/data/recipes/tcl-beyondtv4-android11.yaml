@@ -1,0 +1,75 @@
+id: tcl-beyondtv4-android11
+title: TCL Google TV "BeyondTV4" (P725 family), Android 11
+models: [BeyondTV4]
+android: ["11"]
+summary: >-
+  Disable Google extras and the TCL apps that owners of this family report removing without
+  problems. Built from 4pda TCL thread posts and a TCL "never disable" list; not yet measured on the
+  TCL TV, so test each step. Free RAM before: 403 MB of 2 GB with 600 MB of swap in use.
+result: {}
+steps:
+  - title: "1. Google extras (safe)"
+    notes: Setup leftovers, error reports, calendar sync, games, movies, printing and screensavers.
+    packages:
+      - com.google.android.partnersetup
+      - com.google.android.onetimeinitializer
+      - com.google.android.feedback
+      - com.google.android.syncadapters.calendar
+      - com.google.android.play.games
+      - com.google.android.youtube.tvmusic
+      - com.google.android.videos
+      - com.android.printspooler
+      - com.android.dreams.basic
+  - title: "2. TCL apps owners report removing (trade-offs)"
+    notes: >-
+      From one owner's list of apps the TV works without, from the 50P725 guide, and from other posts.
+      What each app does is mostly inferred from its name. Do these in small batches and test the
+      remote, HDMI inputs, power button, Netflix and YouTube after each.
+    packages:
+      - com.tcl.dashboard
+      - com.tcl.esticker
+      - com.tcl.gallery
+      - com.tcl.ui_mediaCenter
+      - com.tcl.imageplayer
+      - com.tcl.videoplayer
+      - com.tcl.micmanager
+      - com.tcl.notereminder
+      - com.tcl.t_solo
+      - com.tcl.useragreement
+      - com.tcl.usercenter
+      - com.tcl.MultiScreenInteraction_TV
+      - com.tcl.pvr.pvrplayer
+      - com.tcl.messagebox
+      - com.tcl.smartalexa
+  - title: "3. Remote-button partner apps (trade-offs)"
+    notes: >-
+      TCL Channel, Okko and Kinopoisk buttons and Netflix and Prime Video. Disable, do not uninstall:
+      the buttons can then be remapped.
+    packages:
+      - com.tcl.partnercustomizer
+      - com.tcl.partnercustomizer.resource
+      - com.netflix.ninja
+      - com.amazon.amazonvideo.livingroom
+  - title: "4. By hand"
+    notes: >-
+      Turn off auto-update in the Play Store settings: on the scanned TV the Play Store background
+      updater used about 257 MB and a compile job another 225 MB, with a load average of 32. The
+      background services com.tcl.bi, com.tcl.versionUpdateApp, com.tcl.xian.StartandroidService and
+      com.tcl.overseasappshow have no documentation, so they are left alone. Replacing the Google
+      launcher works as on the other recipe (install an official launcher first; com.google.android.tungsten.setupwraith
+      must be disabled too).
+    manual: true
+    packages:
+      - com.google.android.apps.tv.launcherx
+tried_and_failed:
+  - Not yet measured on the TCL TV. The first TV taught us to test HDMI inputs after every change.
+undo:
+  - "One app: adb shell pm enable --user 0 <package>"
+  - "Everything: use the Backups list in the page and press Restore."
+sources:
+  - title: 4pda TCL thread, apps the TV works without (post 116371428)
+    url: https://4pda.to/forum/index.php?showtopic=1024588&view=findpost&p=116371428
+  - title: 4pda TCL thread, ADB disable guide for a 50P725 (post 111224248)
+    url: https://4pda.to/forum/index.php?showtopic=1024588&view=findpost&p=111224248
+  - title: Community TCL debloat prompt with a "never disable" list
+    url: https://tv.cobanov.dev/en/prompt.txt

@@ -218,12 +218,14 @@ def test_corrupt_wrongly_shaped_backup_does_not_break_scan_or_restore(client, fa
 
 def test_recipes_list_and_filters(client):
     data = client.get("/api/recipes").json["recipes"]
-    assert [r["id"] for r in data] == ["mitv-moor2-android11"]
-    first = data[0]
+    assert sorted(r["id"] for r in data) == ["mitv-moor2-android11", "tcl-beyondtv4-android11"]
+    first = next(r for r in data if r["id"] == "mitv-moor2-android11")
     assert first["models"] == ["MiTV-MOOR2"] and first["android"] == ["11"]
     assert first["result"]["after_mb"] > first["result"]["before_mb"]
     assert first["step_count"] == 4 and first["package_count"] > 10
     assert client.get("/api/recipes?model=mitv-moor2&android=11").json["recipes"]
+    assert [r["id"] for r in client.get("/api/recipes?model=BeyondTV4").json["recipes"]] == [
+        "tcl-beyondtv4-android11"]
     assert client.get("/api/recipes?model=OTHER").json["recipes"] == []
     assert client.get("/api/recipes?android=10").json["recipes"] == []
 
@@ -238,4 +240,4 @@ def test_recipe_detail(client):
 
 def test_recipe_filter_options_list_known_models_and_versions(client):
     opts = client.get("/api/recipes").json["filters"]
-    assert opts == {"models": ["MiTV-MOOR2"], "android": ["11"]}
+    assert opts == {"models": ["BeyondTV4", "MiTV-MOOR2"], "android": ["11"]}

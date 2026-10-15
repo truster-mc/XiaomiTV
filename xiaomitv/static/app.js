@@ -276,8 +276,9 @@ async function loadRecipes(useDevice) {
     let data = await api("/api/recipes?" + query);
     const first = !modelSel.options.length;
     if (first || useDevice) {
-      const wantModel = useDevice && device ? device.model : modelSel.value;
-      const wantAndroid = useDevice && device ? device.android : androidSel.value;
+      const picked = useDevice && device ? pickFilters(device, data.filters) : null;
+      const wantModel = picked ? picked.model : modelSel.value;
+      const wantAndroid = picked ? picked.android : androidSel.value;
       fillSelect(modelSel, data.filters.models, wantModel);
       fillSelect(androidSel, data.filters.android, wantAndroid);
       query = new URLSearchParams({ model: modelSel.value, android: androidSel.value });

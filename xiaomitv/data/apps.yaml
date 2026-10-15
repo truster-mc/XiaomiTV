@@ -195,3 +195,125 @@ com.xiaomi.mitv.mediaexplorer:
 com.mediatek.tv.service:
   rating: keep
   reason: Mediatek TV framework service. Disabling it left the HDMI inputs (PS5, Steam machine) with a black screen on a MiTV-MOOR2.
+
+# ---- TCL (BeyondTV4 / P725 family), sources: 4pda TCL thread, tv.cobanov.dev ----
+com.google.android.partnersetup:
+  rating: safe
+  reason: Google partner setup leftovers; TCL owners disable it with no reported problems.
+com.tcl.gallery:
+  rating: tradeoff
+  reason: TCL gallery app. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: The TCL gallery is gone.
+com.tcl.ui_mediaCenter:
+  rating: tradeoff
+  reason: TCL media center app. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: The TCL media center is gone.
+com.tcl.dashboard:
+  rating: tradeoff
+  reason: TCL dashboard app. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Unknown; check the home screen and settings still work.
+com.tcl.imageplayer:
+  rating: tradeoff
+  reason: TCL image player. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Opening photos from USB with the TCL player stops working.
+com.tcl.videoplayer:
+  rating: tradeoff
+  reason: TCL video player. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Playing local or USB video with the TCL player stops working.
+com.tcl.micmanager:
+  rating: tradeoff
+  reason: TCL microphone manager. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Unknown; check the remote's voice button and any voice features.
+com.tcl.t_solo:
+  rating: tradeoff
+  reason: Name suggests a TCL app; its function is not documented. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Unknown; test the TV after disabling.
+com.tcl.useragreement:
+  rating: tradeoff
+  reason: TCL user agreement screens (setup). Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Agreement screens may show again if the TV is reset.
+com.tcl.usercenter:
+  rating: tradeoff
+  reason: TCL user/account center. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: TCL account features stop working.
+com.tcl.messagebox:
+  rating: tradeoff
+  reason: TCL message box. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: TCL on-screen messages stop.
+com.tcl.smartalexa:
+  rating: tradeoff
+  reason: TCL Alexa integration. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Alexa on the TV stops working.
+com.tcl.esticker:
+  rating: tradeoff
+  reason: TCL e-sticker (electronic label) app. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: The TV store-label overlay is gone.
+com.tcl.notereminder:
+  rating: tradeoff
+  reason: TCL note and reminder app. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: TCL reminders are gone.
+com.tcl.MultiScreenInteraction_TV:
+  rating: tradeoff
+  reason: TCL multi-screen (phone-to-TV) interaction. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Phone-to-TV casting through TCL's app stops working.
+com.tcl.pvr.pvrplayer:
+  rating: tradeoff
+  reason: TCL PVR recording player. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Recording and playing back TV recordings stops working.
+com.tcl.inputmethod.international:
+  rating: tradeoff
+  reason: TCL on-screen keyboard. Reported removable by owners of the TCL P725 family (4pda); what it does is only inferred from its name.
+  tradeoff: Typing may fall back to another keyboard; keep it if you use no other.
+com.tcl.partnercustomizer:
+  rating: tradeoff
+  reason: TCL partner customizer; sets up the remote's streaming buttons and TCL Channel recommendations.
+  tradeoff: The remote's TCL Channel, Okko and Kinopoisk buttons and the TCL Channel recommendations stop working.
+com.tcl.partnercustomizer.resource:
+  rating: tradeoff
+  reason: Resources for the TCL partner customizer.
+  tradeoff: Goes with com.tcl.partnercustomizer; the same remote buttons are affected.
+com.tcl.tv:
+  rating: keep
+  reason: TCL TV service. Disabling it breaks the TV's power button.
+com.tcl.tvinput:
+  rating: keep
+  reason: TCL HDMI and antenna input service.
+com.tcl.suspension:
+  rating: keep
+  reason: Runs the remote's Inputs/Source menu. Disabling it removes HDMI switching.
+com.tcl.ttvs:
+  rating: keep
+  reason: Handles system updates over network and USB. The name is misleading; disabling it silently breaks updates.
+com.tcl.tcl_bt_rcu_service:
+  rating: keep
+  reason: The remote's Bluetooth connection.
+com.tcl.autopair:
+  rating: keep
+  reason: Automatic remote pairing.
+com.android.location.fused:
+  rating: keep
+  reason: One source says disabling it sends the TV into a boot loop.
+com.google.android.gsf:
+  rating: keep
+  reason: Google Services Framework; needed by Play Services.
+com.tcl.system.server:
+  rating: keep
+  reason: TCL system service. One owner removed it without problems and others keep it, so it stays locked.
+com.tcl.factory.view:
+  rating: keep
+  reason: TCL factory menu. Owners disagree on removing it, so it stays locked.
+com.tcl.providers.config:
+  rating: keep
+  reason: TCL configuration provider.
+com.tcl.settings:
+  rating: keep
+  reason: TCL settings additions.
+com.tcl.initsetup:
+  rating: keep
+  reason: TCL first-run setup; may be needed after a reset.
+com.tvos:
+  rating: keep
+  reason: TCL TV operating layer.
+com.tcl.android.webview:
+  rating: keep
+  reason: TCL WebView.

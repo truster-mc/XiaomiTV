@@ -54,3 +54,28 @@ def test_manual_step_ticks_nothing():
 def test_no_rows_means_everything_is_not_on_tv():
     plan = run(RECIPE, [])
     assert plan["tick"] == [] and len(plan["skipped"]["not_on_tv"]) == 5
+
+
+def pick(device, filters):
+    code = (f"const {{pickFilters}} = require({json.dumps(str(SCRIPT))});"
+            f"console.log(JSON.stringify(pickFilters({json.dumps(device)}, {json.dumps(filters)})));")
+    out = subprocess.run(["node", "-e", code], capture_output=True, text=True, check=True)
+    return json.loads(out.stdout)
+
+
+FILTERS = {"models": ["BeyondTV4", "MiTV-MOOR2"], "android": ["11"]}
+
+
+def test_pick_filters_prefers_the_model_then_the_codename():
+    assert pick({"model": "MiTV-MOOR2", "device": "x", "android": "11"}, FILTERS) == \
+        {"model": "MiTV-MOOR2", "android": "11"}
+    # TCL reports the generic model "Smart TV", so the codename picks the recipe
+    assert pick({"model": "Smart TV", "device": "BeyondTV4", "android": "11"}, FILTERS) == \
+        {"model": "BeyondTV4", "android": "11"}
+
+
+def test_pick_filters_falls_back_to_all():
+    assert pick({"model": "Other", "device": "Unknown", "android": "9"}, FILTERS) == \
+        {"model": "", "android": ""}
+    assert pick({"model": "mitv-moor2", "android": "11"}, FILTERS)["model"] == "MiTV-MOOR2"
+    assert pick(None, FILTERS) == {"model": "", "android": ""}

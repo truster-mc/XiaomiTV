@@ -81,3 +81,8 @@ def test_collect_builds_scan_from_fake_adb():
     assert scan.launcher == "com.google.android.apps.tv.launcherx"
     assert scan.data_free_kb == 1767320
     assert scan.pss_kb["com.mitv.livetv"] == 120422
+
+
+def test_collect_reads_the_device_codename(fake_adb):
+    fake_adb.responses["getprop ro.product.device"] = "BeyondTV4\n"
+    assert collector.collect(fake_adb).device["device"] == "BeyondTV4"
